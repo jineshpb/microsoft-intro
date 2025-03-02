@@ -1,0 +1,107 @@
+import { GLTF, ThreeElement } from "@react-three/drei"
+import * as THREE from 'three'
+
+export type GLTFResult = GLTF & {
+    nodes: {
+      intro_cube: THREE.Mesh
+      cube_frame: THREE.Mesh
+      photo_frame: THREE.Mesh
+      chair_leg: THREE.Mesh
+      table: THREE.Mesh
+      monitor_screen: THREE.Mesh
+      bubble_clock_extra_bubbles: THREE.Mesh
+      walls_and_floors: THREE.Mesh
+      sofa: THREE.Mesh
+      telescope_scope: THREE.Mesh
+      chair_top: THREE.Mesh
+      caroke_machine: THREE.Mesh
+      boxes_on_floor: THREE.Mesh
+      floor_lamp: THREE.Mesh
+      plant_pot: THREE.Mesh
+      telescope_stand: THREE.Mesh
+      car: THREE.Mesh
+      books_top_shelf: THREE.Mesh
+      books_bottom_shelf: THREE.Mesh
+      small_plant: THREE.Mesh
+      speaker_2: THREE.Mesh
+      speaker_1: THREE.Mesh
+      monitor_stand: THREE.Mesh
+      monitor: THREE.Mesh
+      allen_drawer: THREE.Mesh
+      pc: THREE.Mesh
+      waste_bin: THREE.Mesh
+      coffee_steam: THREE.Mesh
+      floor: THREE.Mesh
+      hrtens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      hrtens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      hrtens_segment2_s0_s1_s2_s3_s4_s7_s8_s9: THREE.Mesh
+      hrtens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      hrtens_segment3_s0_s1_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrtens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrtens_segment5_s0_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      hrtens_segment6_s0_s2_s6_s8: THREE.Mesh
+      hrtens_segment8_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrtens_segment7_s0_s4_s5_s6_s8_s9: THREE.Mesh
+      hrtens_segment11: THREE.Mesh
+      hrtens_segment10_s7: THREE.Mesh
+      segmentsec: THREE.Mesh
+      hrunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      hrunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      hrunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9: THREE.Mesh
+      hrunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      hrunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      hrunits_segment6_s0_s2_s6_s8: THREE.Mesh
+      hrunits_segment8_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      hrunits_segment7_s0_s4_s5_s6_s8_s9: THREE.Mesh
+      hrunits_segment11: THREE.Mesh
+      hrunits_segment10_s7: THREE.Mesh
+      mintens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      mintens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      mintens_segment2_s0_s1_s2_s3_s4_s7_s8_s9: THREE.Mesh
+      mintens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      mintens_segment3_s0_s1_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      mintens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      mintens_segment5_s0_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      mintens_segment6_s0_s2_s6_s8: THREE.Mesh
+      mintens_segment8_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      mintens_segment7_s0_s4_s5_s6_s8_s9: THREE.Mesh
+      mintens_segment11: THREE.Mesh
+      mintens_segment10_s7: THREE.Mesh
+      minunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      minunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      minunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9: THREE.Mesh
+      minunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9: THREE.Mesh
+      minunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      minunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      minunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9: THREE.Mesh
+      minunits_segment6_s0_s2_s6_s8: THREE.Mesh
+      minunits_segment8_s2_s3_s4_s5_s6_s8_s9: THREE.Mesh
+      minunits_segment7_s0_s4_s5_s6_s8_s9: THREE.Mesh
+      minunits_segment11: THREE.Mesh
+      minunits_segment10_s7: THREE.Mesh
+      bubble_clock: THREE.Mesh
+      Eva_body: THREE.Mesh
+      Eva_head: THREE.Mesh
+      Eva_eyes: THREE.Mesh
+      Eva_left_hand: THREE.Mesh
+      Eva_right_hand: THREE.Mesh
+      Eva_platform: THREE.Mesh
+      lightbar_desk: THREE.Mesh
+      Shelf_top: THREE.Mesh
+      Shelf_bottom: THREE.Mesh
+      monitor_backlight: THREE.Mesh
+      DJ_terminal_case001: THREE.Mesh
+    }
+    materials: {}
+  }
+
+
+  export type ActionName =
+  | 'cube-frame-action'
+  | 'Eva_bodyAction'
+  | 'Eva_right_handAction'
+  | 'Eva_left_handAction'
+  | 'Eva_eyesAction'
+type GLTFActions = Record<ActionName, THREE.AnimationAction>
