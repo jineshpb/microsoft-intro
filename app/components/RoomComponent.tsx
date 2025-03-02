@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import React, { useRef } from 'react'
 import { useGLTF, Html, useAnimations, useTexture, Float } from '@react-three/drei'
 import { useControls, folder } from 'leva'
+import CoffeeSteam from './CoffeeSteam'
 
 function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
   const controls = useControls({
@@ -31,9 +32,14 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
       geometry={geometry}
       rotation={[0, -Math.PI / 4, -Math.PI / 2]}
     >
+      <meshPhysicalMaterial 
+        color="#000000" 
+        depthWrite={true}  
+        transparent
+        opacity={0.99}
+      />
       <Html
         transform
-        wrapperClass="htmlScreen"
         distanceFactor={controls.distanceFactor}
         position={[controls.positionX, controls.positionY, controls.positionZ]}
         rotation={[controls.rotationX, controls.rotationY, controls.rotationZ]}
@@ -43,8 +49,16 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
           transformOrigin: '0 0',
           overflow: 'hidden',
           borderRadius: '20px',
-          backgroundColor: '#000'
+          backgroundColor: '#000',
+          pointerEvents: 'none'
         }}
+        occlude
+        zIndexRange={[1, 10]}
+        portal
+        calculatePosition={(el, camera, size) => {
+          return [controls.positionX, controls.positionY, controls.positionZ]
+        }}
+        transform
       >
         <iframe
           width="100%"
@@ -55,8 +69,7 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
             border: 'none',
             borderRadius: '20px',
             backgroundColor: '#000',
-            transformOrigin: '0 0',
-            
+            transformOrigin: '0 0'
           }}
         />
       </Html>
@@ -64,10 +77,10 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
   )
 }
 
-export function RoomComponent(props: JSX.IntrinsicElements['group']) {
-  const group = useRef<THREE.Group>()
-  const { nodes, materials, animations } = useGLTF('models/room_contents.glb') as GLTFResult
-  const { actions } = useAnimations<GLTFActions>(animations, group)
+export function RoomComponent(props: any) {
+  const group = useRef()
+  const { nodes, materials, animations } = useGLTF('models/room_contents.glb') as any
+  const { actions } = useAnimations(animations, group)
   
   const dayTexture = useTexture('textures/day_room_bake.jpg')
   dayTexture.flipY = false
@@ -90,16 +103,6 @@ export function RoomComponent(props: JSX.IntrinsicElements['group']) {
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
-       
-        <mesh
-          name="intro_cube"
-          castShadow
-          receiveShadow
-          geometry={nodes.intro_cube.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-          scale={0.446}
-        />
         <mesh
           name="cube_frame"
           castShadow
@@ -108,6 +111,18 @@ export function RoomComponent(props: JSX.IntrinsicElements['group']) {
           material={dayMaterial}
           position={[-2.944, 4.411, 1.205]}
           rotation={[0, 0.191, -0.788]}
+        />
+        
+        <CoffeeSteam nodes={nodes} />
+
+        <mesh
+          name="table"
+          castShadow
+          receiveShadow
+          geometry={nodes.table.geometry}
+          material={dayMaterial}
+          position={[-0.076, 0, 0.12]}
+          scale={0.446}
         />
         <mesh
           name="photo_frame"
@@ -133,7 +148,7 @@ export function RoomComponent(props: JSX.IntrinsicElements['group']) {
           material={dayMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
-         <MonitorScreen 
+        <MonitorScreen 
           geometry={nodes.monitor_screen.geometry} 
         />
          {/* <mesh
@@ -329,14 +344,7 @@ export function RoomComponent(props: JSX.IntrinsicElements['group']) {
           material={dayMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
-        <mesh
-          name="coffee_steam"
-          castShadow
-          receiveShadow
-          geometry={nodes.coffee_steam.geometry}
-          material={dayMaterial}
-          rotation={[0, 0, -Math.PI / 2]}
-        />
+        <CoffeeSteam nodes={nodes} />
         <mesh
           name="floor"
           castShadow
