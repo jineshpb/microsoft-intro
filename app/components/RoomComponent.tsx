@@ -4,86 +4,29 @@ import React, { useRef, useMemo, useEffect } from 'react'
 import { useGLTF, Html, useAnimations, useTexture } from '@react-three/drei'
 import { useControls, folder } from 'leva'
 import { useFrame } from '@react-three/fiber'
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
-import { BlendFunction } from 'postprocessing'
 import CoffeeSteam from './CoffeeSteam'
 import ClockComponent from './ClockComponent'
 import { GLTFResult } from '../types/room'
+import { useCycleStore } from '../store/useCycleStore'
+import MonitorScreen from './MonitorScreen'
 
-function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
-  const controls = useControls({
-    'Position': folder({
-      positionX: { value: -3.83, min: -5, max: 5, step: 0.001 },
-      positionY: { value: -2.32, min: -5, max: 5, step: 0.001 },
-      positionZ: { value: -0.57, min: -5, max: 5, step: 0.001 }
-    }),
-    'Rotation': folder({
-      rotationX: { value: 1.58, min: -Math.PI, max: Math.PI, step: 0.01 },
-      rotationY: { value: -3.14, min: -Math.PI, max: Math.PI, step: 0.01 },
-      rotationZ: { value: -1.57, min: -Math.PI, max: Math.PI, step: 0.01 }
-    }),
-    'Size': folder({
-      width: { value: 1024, min: 100, max: 2048, step: 10 },
-      height: { value: 655, min: 100, max: 1536, step: 10 }
-    }),
-    distanceFactor: { value: 0.93, min: 0.1, max: 5, step: 0.01 }
-  })
 
-  return (
-    <mesh
-      name="monitor_screen"
-      castShadow
-      receiveShadow
-      geometry={geometry}
-      rotation={[0, -Math.PI / 4, -Math.PI / 2]}
-    >
-      <meshPhysicalMaterial 
-        color="#000000" 
-        depthWrite={true}  
-        transparent
-        opacity={0.4}
-      />
-      <Html
-        transform
-        distanceFactor={controls.distanceFactor}
-        position={[controls.positionX, controls.positionY, controls.positionZ]}
-        rotation={[controls.rotationX, controls.rotationY, controls.rotationZ]}
-        style={{
-          width: `${controls.width}px`,
-          height: `${controls.height}px`,
-          transformOrigin: '0 0',
-          overflow: 'hidden',
-          borderRadius: '20px',
-          backgroundColor: '#000',
-          pointerEvents: 'none'
-        }}
-        occlude
-        zIndexRange={[1, 10]}
-        calculatePosition={(el, camera, size) => {
-          return [controls.positionX, controls.positionY, controls.positionZ]
-        }}
-      >
-        <iframe
-          width="100%"
-          height="100%"
-          src={`https://www.youtube.com/embed/${process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY}?autoplay=1&mute=1&controls=0&enablejsapi=1&playsinline=1&loop=1&modestbranding=1`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          style={{ 
-            border: 'none',
-            borderRadius: '20px',
-            backgroundColor: '#000',
-            transformOrigin: '0 0'
-          }}
-        />
-      </Html>
-    </mesh>
-  )
-}
 
 export function RoomComponent(props: Record<string, never>) {
   const group = useRef(null)
   const { nodes, animations } = useGLTF('models/room_contents.glb') as unknown as GLTFResult
   // const { actions } = useAnimations(animations, group)
+
+  const { 
+    cycleValue, 
+    setCycleValue, 
+    cycleSpeed, 
+    setCycleSpeed, 
+    manualControl, 
+    setManualControl, 
+    cyclePosition, 
+    setCyclePosition 
+  } = useCycleStore()
   
   const dayTexture = useTexture('textures/day_room_bake.jpg')
   dayTexture.flipY = false
@@ -153,33 +96,52 @@ export function RoomComponent(props: Record<string, never>) {
   // Add controls for day/night cycle
   const cycleControls = useControls('Day/Night Cycle', {
     parameters: folder({
-      cycleSpeed: { value: 0.1, min: 0.01, max: 1.0, step: 0.01 },
-      manualControl: { value: false },
-      cyclePosition: { value: 0.0, min: 0.0, max: 1.0, step: 0.01 }
+      cycleSpeed: { 
+        value: cycleSpeed, 
+        min: 0.01, 
+        max: 1.0, 
+        step: 0.01,
+        onChange: (value) => setCycleSpeed(value)
+      },
+      manualControl: { 
+        value: manualControl,
+        onChange: (value) => setManualControl(value)
+      },
+      cyclePosition: { 
+        value: cyclePosition, 
+        min: 0.0, 
+        max: 1.0, 
+        step: 0.01,
+        onChange: (value) => setCyclePosition(value)
+      }
     })
   })
-
   // Update cycle progress in animation loop
   useFrame((state) => {
     if (floorMaterial && roomMaterial) {
-      if (cycleControls.manualControl) {
+      let cycle;
+      if (manualControl) {
         // Manual control mode
-        floorMaterial.uniforms.uCycleProgress.value = cycleControls.cyclePosition;
-        roomMaterial.uniforms.uCycleProgress.value = cycleControls.cyclePosition;
+        cycle = cyclePosition;
+        floorMaterial.uniforms.uCycleProgress.value = cycle;
+        roomMaterial.uniforms.uCycleProgress.value = cycle;
       } else {
         // Automatic cycling
         // Calculate cycle based on time: 0.0 to 1.0 and back
-        const time = state.clock.getElapsedTime() * cycleControls.cycleSpeed;
-        const cycle = (Math.sin(time * 0.5) + 1.0) * 0.5; // Oscillate between 0 and 1
+        const time = state.clock.getElapsedTime() * cycleSpeed;
+        cycle = (Math.sin(time * 0.5) + 1.0) * 0.5; // Oscillate between 0 and 1
         floorMaterial.uniforms.uCycleProgress.value = cycle;
         roomMaterial.uniforms.uCycleProgress.value = cycle;
       }
+      
+      // Update the store instead of the window object
+      setCycleValue(cycle);
     }
   })
-
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
+        <MonitorScreen geometry={nodes.photo_frame.geometry}/>
         <mesh
           name="cube_frame"
           castShadow
@@ -421,15 +383,7 @@ export function RoomComponent(props: Record<string, never>) {
           position={[-2.221, 5.241, 2.861]}
           rotation={[0, -Math.PI / 4, 0]}
         />
-        {/* <mesh
-          name="monitor_backlight"
-          castShadow
-          receiveShadow
-          geometry={nodes.monitor_backlight.geometry}
-          material={roomMaterial}
-          position={[-1.296, 3.815, -2.104]}
-          rotation={[0, -Math.PI / 4, -Math.PI / 2]}
-        /> */}
+
         <mesh
           name="DJ_terminal_case001"
           castShadow
@@ -440,19 +394,7 @@ export function RoomComponent(props: Record<string, never>) {
           rotation={[0, -Math.PI / 4, 0]}
         />
       </group>
-      <EffectComposer stencil>
-        {/* <Bloom 
-          intensity={1.2}
-          luminanceThreshold={0.9}
-          luminanceSmoothing={0.025}
-          mipmapBlur
-        /> */}
-        {/* <Vignette
-          darkness={0.5}
-          offset={0.5}
-          blendFunction={BlendFunction.NORMAL}
-        /> */}
-      </EffectComposer>
+
     </group>
   )
 }

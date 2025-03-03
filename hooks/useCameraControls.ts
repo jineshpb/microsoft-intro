@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useControls, folder } from 'leva';
+import { useControls } from 'leva';
 
 export function useCameraControls() {
   const controlsRef = useRef(null);

@@ -228,9 +228,9 @@ interface BubbleClockProps {
 
 export default function BubbleClock({ nodes }: BubbleClockProps) {
     const [counter, setCounter] = useState(0)
-    const clockSegmentMaterial = useRef<THREE.ShaderMaterial>()
-    const clockBackgroundMaterial = useRef<THREE.ShaderMaterial>()
-    const clockSecondsMaterial = useRef<THREE.ShaderMaterial>()
+    const clockSegmentMaterial = useRef<THREE.ShaderMaterial>(null)
+    const clockBackgroundMaterial = useRef<THREE.ShaderMaterial>(null)
+    const clockSecondsMaterial = useRef<THREE.ShaderMaterial>(null)
 
     // Add controls for shader parameters
     const shaderControls = useControls('Clock Shader', {
