@@ -1,7 +1,7 @@
-import { GLTF, ThreeElement } from "@react-three/drei"
+import { Gltf } from "@react-three/drei"
 import * as THREE from 'three'
 
-export type GLTFResult = GLTF & {
+export type GLTFResult = typeof Gltf & {
     nodes: {
       intro_cube: THREE.Mesh
       cube_frame: THREE.Mesh
@@ -107,4 +107,3 @@ export type GLTFResult = GLTF & {
   | 'Eva_right_handAction'
   | 'Eva_left_handAction'
   | 'Eva_eyesAction'
-type GLTFActions = Record<ActionName, THREE.AnimationAction>

@@ -5,7 +5,7 @@ import { useGLTF, useTexture } from '@react-three/drei'
 // import { useControls, folder } from 'leva'
 import { useFrame } from '@react-three/fiber'
 import CoffeeSteam from './CoffeeSteam'
-import ClockComponent from './ClockComponent'
+
 import { GLTFResult } from '../types/room'
 import { useCycleStore } from '../store/useCycleStore'
 import MonitorScreen from './MonitorScreen'
@@ -201,7 +201,7 @@ export function RoomComponent(props: Record<string, never>) {
           <MonitorScreen geometry={nodes.monitor_screen.geometry} />
       
 
-        {/* <ClockComponent dayMaterial={roomMaterial} nodes={nodes} /> */}
+
 
         <mesh
           name="walls_and_floors"
