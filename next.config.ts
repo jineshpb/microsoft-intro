@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       type: 'asset/source'
     })
     return config
+    
   }
 }
 

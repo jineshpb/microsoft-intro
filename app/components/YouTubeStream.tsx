@@ -9,8 +9,7 @@ export function YouTubeStream({ streamKey }: YouTubeStreamProps) {
   return (
     <div style={{ 
       position: 'fixed', 
-      right: '20px', 
-      top: '20px', 
+
       width: '320px',
       height: '180px',
       zIndex: 1000 

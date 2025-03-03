@@ -94,7 +94,10 @@ export type GLTFResult = GLTF & {
       monitor_backlight: THREE.Mesh
       DJ_terminal_case001: THREE.Mesh
     }
-    materials: {}
+    materials: {
+      day_room_bake: THREE.MeshStandardMaterial
+      n_day_floor_bake: THREE.MeshStandardMaterial
+    }
   }
 
 

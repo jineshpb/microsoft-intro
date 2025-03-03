@@ -1,9 +1,14 @@
 'use client'
 import * as THREE from 'three'
-import React, { useRef } from 'react'
-import { useGLTF, Html, useAnimations, useTexture, Float } from '@react-three/drei'
+import React, { useRef, useMemo, useEffect } from 'react'
+import { useGLTF, Html, useAnimations, useTexture } from '@react-three/drei'
 import { useControls, folder } from 'leva'
+import { useFrame } from '@react-three/fiber'
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
 import CoffeeSteam from './CoffeeSteam'
+import ClockComponent from './ClockComponent'
+import { GLTFResult } from '../types/room'
 
 function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
   const controls = useControls({
@@ -36,7 +41,7 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
         color="#000000" 
         depthWrite={true}  
         transparent
-        opacity={0.99}
+        opacity={0.4}
       />
       <Html
         transform
@@ -54,11 +59,9 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
         }}
         occlude
         zIndexRange={[1, 10]}
-        portal
         calculatePosition={(el, camera, size) => {
           return [controls.positionX, controls.positionY, controls.positionZ]
         }}
-        transform
       >
         <iframe
           width="100%"
@@ -77,27 +80,101 @@ function MonitorScreen({ geometry }: { geometry: THREE.BufferGeometry }) {
   )
 }
 
-export function RoomComponent(props: any) {
-  const group = useRef()
-  const { nodes, materials, animations } = useGLTF('models/room_contents.glb') as any
-  const { actions } = useAnimations(animations, group)
+export function RoomComponent(props: Record<string, never>) {
+  const group = useRef(null)
+  const { nodes, animations } = useGLTF('models/room_contents.glb') as unknown as GLTFResult
+  // const { actions } = useAnimations(animations, group)
   
   const dayTexture = useTexture('textures/day_room_bake.jpg')
   dayTexture.flipY = false
   
+  const nightTexture = useTexture('textures/night_room_bake.jpg')
+  nightTexture.flipY = false
+  
   const floorTexture = useTexture('textures/n_day_floor_bake.jpg')
   floorTexture.flipY = false
 
-  const dayMaterial = new THREE.MeshStandardMaterial({
-    map: dayTexture,
-    roughness: 1,
-    metalness: 0
+  const floorNightTexture = useTexture('textures/n_night_floor_bake.jpg')
+  floorNightTexture.flipY = false
+
+  // Room shader vertex code (same as floor shader)
+  const vertexShader = `
+    varying vec2 vUv;
+    
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `
+
+  // Room shader fragment code (same as floor shader)
+  const fragmentShader = `
+    uniform sampler2D uDayTexture;
+    uniform sampler2D uNightTexture;
+    uniform float uCycleProgress;
+    
+    varying vec2 vUv;
+    
+    void main() {
+      vec4 dayColor = texture2D(uDayTexture, vUv);
+      vec4 nightColor = texture2D(uNightTexture, vUv);
+      
+      // Smooth transition between day and night
+      gl_FragColor = mix(dayColor, nightColor, uCycleProgress);
+    }
+  `
+
+  // Create shader material for room with day/night cycle
+  const roomMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uDayTexture: { value: dayTexture },
+        uNightTexture: { value: nightTexture },
+        uCycleProgress: { value: 0.0 }
+      },
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader
+    })
+  }, [dayTexture, nightTexture])
+
+  // Create shader material for floor with day/night cycle
+  const floorMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uDayTexture: { value: floorTexture },
+        uNightTexture: { value: floorNightTexture },
+        uCycleProgress: { value: 0.0 }
+      },
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader
+    })
+  }, [floorTexture, floorNightTexture])
+
+  // Add controls for day/night cycle
+  const cycleControls = useControls('Day/Night Cycle', {
+    parameters: folder({
+      cycleSpeed: { value: 0.1, min: 0.01, max: 1.0, step: 0.01 },
+      manualControl: { value: false },
+      cyclePosition: { value: 0.0, min: 0.0, max: 1.0, step: 0.01 }
+    })
   })
 
-  const floorMaterial = new THREE.MeshStandardMaterial({
-    map: floorTexture,
-    roughness: 1,
-    metalness: 0
+  // Update cycle progress in animation loop
+  useFrame((state) => {
+    if (floorMaterial && roomMaterial) {
+      if (cycleControls.manualControl) {
+        // Manual control mode
+        floorMaterial.uniforms.uCycleProgress.value = cycleControls.cyclePosition;
+        roomMaterial.uniforms.uCycleProgress.value = cycleControls.cyclePosition;
+      } else {
+        // Automatic cycling
+        // Calculate cycle based on time: 0.0 to 1.0 and back
+        const time = state.clock.getElapsedTime() * cycleControls.cycleSpeed;
+        const cycle = (Math.sin(time * 0.5) + 1.0) * 0.5; // Oscillate between 0 and 1
+        floorMaterial.uniforms.uCycleProgress.value = cycle;
+        roomMaterial.uniforms.uCycleProgress.value = cycle;
+      }
+    }
   })
 
   return (
@@ -108,7 +185,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.cube_frame.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-2.944, 4.411, 1.205]}
           rotation={[0, 0.191, -0.788]}
         />
@@ -116,20 +193,11 @@ export function RoomComponent(props: any) {
         <CoffeeSteam nodes={nodes} />
 
         <mesh
-          name="table"
-          castShadow
-          receiveShadow
-          geometry={nodes.table.geometry}
-          material={dayMaterial}
-          position={[-0.076, 0, 0.12]}
-          scale={0.446}
-        />
-        <mesh
           name="photo_frame"
           castShadow
           receiveShadow
           geometry={nodes.photo_frame.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0.01, -0.5, 0.005]}
         />
         <mesh
@@ -137,7 +205,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.chair_leg.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -145,49 +213,21 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.table.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
-        <MonitorScreen 
-          geometry={nodes.monitor_screen.geometry} 
-        />
-         {/* <mesh
-          name="monitor_screen"
-          castShadow
-          receiveShadow
-          geometry={nodes.monitor_screen.geometry}
-          // material={nodes.monitor_screen.material}
-          rotation={[0, -Math.PI / 4, -Math.PI / 2]}
-        >
-          <Html
-          
-          castShadow 
-          receiveShadow 
-          occlude="blending"
-        >
-          <iframe
-            width="100%"
-            height="100%"
-            src={`https://www.youtube.com/embed/S6jj6adI4Xo?autoplay=1&mute=1&controls=0&enablejsapi=1&playsinline=1&loop=1`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            style={{ border: 'none' }}
-          />
-        </Html>
-        </mesh> */}
-        <mesh
-          name="bubble_clock_extra_bubbles"
-          castShadow
-          receiveShadow
-          geometry={nodes.bubble_clock_extra_bubbles.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
+
+          <MonitorScreen geometry={nodes.monitor_screen.geometry} />
+      
+
+        <ClockComponent dayMaterial={roomMaterial} nodes={nodes} />
+
         <mesh
           name="walls_and_floors"
           castShadow
           receiveShadow
           geometry={nodes.walls_and_floors.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -195,7 +235,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.sofa.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -203,7 +243,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.telescope_scope.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[4.235, 2.49, 0.303]}
           rotation={[0, -Math.PI / 4, 0]}
         />
@@ -212,7 +252,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.chair_top.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[1.347, 1.19, -0.193]}
           rotation={[0, -Math.PI / 4, 0]}
         />
@@ -221,7 +261,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.caroke_machine.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -229,7 +269,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.boxes_on_floor.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -237,7 +277,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.floor_lamp.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -245,7 +285,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.plant_pot.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -253,7 +293,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.telescope_stand.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -261,7 +301,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.car.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0.01, -0.5, 0.005]}
         />
         <mesh
@@ -269,7 +309,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.books_top_shelf.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0.01, -0.5, 0.005]}
         />
         <mesh
@@ -277,7 +317,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.books_bottom_shelf.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0.01, -0.5, 0.005]}
         />
         <mesh
@@ -285,7 +325,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.small_plant.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0.01, -0.5, 0.005]}
         />
         <mesh
@@ -293,7 +333,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.speaker_2.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -301,7 +341,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.speaker_1.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -309,7 +349,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.monitor_stand.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -317,7 +357,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.monitor.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -325,7 +365,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.allen_drawer.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -333,7 +373,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.pc.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <mesh
@@ -341,7 +381,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.waste_bin.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           rotation={[0, -Math.PI / 4, 0]}
         />
         <CoffeeSteam nodes={nodes} />
@@ -353,465 +393,13 @@ export function RoomComponent(props: any) {
           material={floorMaterial}
           rotation={[0, 0, 0]}
         />
-        <mesh
-          name="hrtens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment2_s0_s1_s2_s3_s4_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment2_s0_s1_s2_s3_s4_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment3_s0_s1_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment3_s0_s1_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment5_s0_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment5_s0_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment6_s0_s2_s6_s8"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment6_s0_s2_s6_s8.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment8_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment8_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment7_s0_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment7_s0_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment11"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment11.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrtens_segment10_s7"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrtens_segment10_s7.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="segmentsec"
-          castShadow
-          receiveShadow
-          geometry={nodes.segmentsec.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment6_s0_s2_s6_s8"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment6_s0_s2_s6_s8.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment8_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment8_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment7_s0_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment7_s0_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment11"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment11.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="hrunits_segment10_s7"
-          castShadow
-          receiveShadow
-          geometry={nodes.hrunits_segment10_s7.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment2_s0_s1_s2_s3_s4_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment2_s0_s1_s2_s3_s4_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment3_s0_s1_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment3_s0_s1_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment5_s0_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment5_s0_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment6_s0_s2_s6_s8"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment6_s0_s2_s6_s8.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment8_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment8_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment7_s0_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment7_s0_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment11"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment11.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="mintens_segment10_s7"
-          castShadow
-          receiveShadow
-          geometry={nodes.mintens_segment10_s7.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment0_s0_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment1_s0_s1_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment2_s0_s1_s2_s3_s4_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment9_s1_s2_s3_s4_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment3_s0_s1_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment4_s0_s1_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment5_s0_s2_s3_s5_s6_s7_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment6_s0_s2_s6_s8"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment6_s0_s2_s6_s8.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment8_s2_s3_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment8_s2_s3_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment7_s0_s4_s5_s6_s8_s9"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment7_s0_s4_s5_s6_s8_s9.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment11"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment11.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="minunits_segment10_s7"
-          castShadow
-          receiveShadow
-          geometry={nodes.minunits_segment10_s7.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="bubble_clock"
-          castShadow
-          receiveShadow
-          geometry={nodes.bubble_clock.geometry}
-          material={dayMaterial}
-          rotation={[0, -Math.PI / 4, 0]}
-        />
-        <mesh
-          name="Eva_body"
-          castShadow
-          receiveShadow
-          geometry={nodes.Eva_body.geometry}
-          material={dayMaterial}
-          position={[-3.049, 5.935, 1.108]}
-          rotation={[0, 0.006, 0]}
-          scale={0.978}>
-          <mesh
-            name="Eva_head"
-            castShadow
-            receiveShadow
-            geometry={nodes.Eva_head.geometry}
-            material={dayMaterial}
-            position={[-0.003, 0.627, 0]}
-            rotation={[0, 0, -Math.PI]}>
-            <mesh
-              name="Eva_eyes"
-              castShadow
-              receiveShadow
-              geometry={nodes.Eva_eyes.geometry}
-              material={dayMaterial}
-              position={[-0.002, -0.451, 0]}
-            />
-          </mesh>
-          <mesh
-            name="Eva_left_hand"
-            castShadow
-            receiveShadow
-            geometry={nodes.Eva_left_hand.geometry}
-            material={dayMaterial}
-            position={[0.321, 0.511, 0]}
-            rotation={[0, 0, 0.273]}
-          />
-          <mesh
-            name="Eva_right_hand"
-            castShadow
-            receiveShadow
-            geometry={nodes.Eva_right_hand.geometry}
-            material={dayMaterial}
-            position={[-0.327, 0.512, 0]}
-            rotation={[0, 0, -0.229]}
-          />
-        </mesh>
-        <mesh
-          name="Eva_platform"
-          castShadow
-          receiveShadow
-          geometry={nodes.Eva_platform.geometry}
-          material={dayMaterial}
-          position={[-3.049, 5.935, 1.108]}
-        />
+        
         <mesh
           name="lightbar_desk"
           castShadow
           receiveShadow
           geometry={nodes.lightbar_desk.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-1.472, 2.391, -3.288]}
           rotation={[0, -Math.PI / 4, -Math.PI / 2]}
         />
@@ -820,7 +408,7 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.Shelf_top.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-2.221, 7.387, 2.861]}
           rotation={[0, -Math.PI / 4, 0]}
         />
@@ -829,29 +417,42 @@ export function RoomComponent(props: any) {
           castShadow
           receiveShadow
           geometry={nodes.Shelf_bottom.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-2.221, 5.241, 2.861]}
           rotation={[0, -Math.PI / 4, 0]}
         />
-        <mesh
+        {/* <mesh
           name="monitor_backlight"
           castShadow
           receiveShadow
           geometry={nodes.monitor_backlight.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-1.296, 3.815, -2.104]}
           rotation={[0, -Math.PI / 4, -Math.PI / 2]}
-        />
+        /> */}
         <mesh
           name="DJ_terminal_case001"
           castShadow
           receiveShadow
           geometry={nodes.DJ_terminal_case001.geometry}
-          material={dayMaterial}
+          material={roomMaterial}
           position={[-0.462, 4.032, 3.962]}
           rotation={[0, -Math.PI / 4, 0]}
         />
       </group>
+      <EffectComposer stencil>
+        {/* <Bloom 
+          intensity={1.2}
+          luminanceThreshold={0.9}
+          luminanceSmoothing={0.025}
+          mipmapBlur
+        /> */}
+        {/* <Vignette
+          darkness={0.5}
+          offset={0.5}
+          blendFunction={BlendFunction.NORMAL}
+        /> */}
+      </EffectComposer>
     </group>
   )
 }
