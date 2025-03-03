@@ -1,8 +1,8 @@
 'use client'
 import * as THREE from 'three'
-import React, { useRef, useMemo, useEffect } from 'react'
-import { useGLTF, Html, useAnimations, useTexture } from '@react-three/drei'
-import { useControls, folder } from 'leva'
+import React, { useRef, useMemo } from 'react'
+import { useGLTF, useTexture } from '@react-three/drei'
+// import { useControls, folder } from 'leva'
 import { useFrame } from '@react-three/fiber'
 import CoffeeSteam from './CoffeeSteam'
 import ClockComponent from './ClockComponent'
@@ -10,22 +10,41 @@ import { GLTFResult } from '../types/room'
 import { useCycleStore } from '../store/useCycleStore'
 import MonitorScreen from './MonitorScreen'
 
-
+function ChairAnimation() {
+  const chairRef = useRef<THREE.Mesh>(null);
+  const initialRotation = -Math.PI / 4;
+  
+  // Use useFrame to animate the chair rotation
+  useFrame((state) => {
+    if (chairRef.current && chairRef.current.parent) {
+      // Get the parent mesh (chair_top)
+      const chairMesh = chairRef.current.parent as THREE.Mesh;
+      
+      // Create a gentle oscillation effect using sine
+      // The sine function will oscillate between -1 and 1
+      // We multiply by a small value (0.05) to keep the rotation subtle
+      const oscillation = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.05;
+      
+      // Apply the oscillation to the y-rotation, maintaining the initial rotation
+      chairMesh.rotation.y = initialRotation + oscillation;
+    }
+  });
+  
+  return <mesh ref={chairRef} />;
+}
 
 export function RoomComponent(props: Record<string, never>) {
   const group = useRef(null)
-  const { nodes, animations } = useGLTF('models/room_contents.glb') as unknown as GLTFResult
+  const { nodes } = useGLTF('models/room_contents.glb') as unknown as GLTFResult
   // const { actions } = useAnimations(animations, group)
 
   const { 
-    cycleValue, 
+
     setCycleValue, 
     cycleSpeed, 
-    setCycleSpeed, 
+
     manualControl, 
-    setManualControl, 
     cyclePosition, 
-    setCyclePosition 
   } = useCycleStore()
   
   const dayTexture = useTexture('textures/day_room_bake.jpg')
@@ -94,28 +113,28 @@ export function RoomComponent(props: Record<string, never>) {
   }, [floorTexture, floorNightTexture])
 
   // Add controls for day/night cycle
-  const cycleControls = useControls('Day/Night Cycle', {
-    parameters: folder({
-      cycleSpeed: { 
-        value: cycleSpeed, 
-        min: 0.01, 
-        max: 1.0, 
-        step: 0.01,
-        onChange: (value) => setCycleSpeed(value)
-      },
-      manualControl: { 
-        value: manualControl,
-        onChange: (value) => setManualControl(value)
-      },
-      cyclePosition: { 
-        value: cyclePosition, 
-        min: 0.0, 
-        max: 1.0, 
-        step: 0.01,
-        onChange: (value) => setCyclePosition(value)
-      }
-    })
-  })
+  // const cycleControls = useControls('Day/Night Cycle', {
+  //   parameters: folder({
+  //     cycleSpeed: { 
+  //       value: cycleSpeed, 
+  //       min: 0.01, 
+  //       max: 1.0, 
+  //       step: 0.01,
+  //       onChange: (value) => setCycleSpeed(value)
+  //     },
+  //     manualControl: { 
+  //       value: manualControl,
+  //       onChange: (value) => setManualControl(value)
+  //     },
+  //     cyclePosition: { 
+  //       value: cyclePosition, 
+  //       min: 0.0, 
+  //       max: 1.0, 
+  //       step: 0.01,
+  //       onChange: (value) => setCyclePosition(value)
+  //     }
+  //   })
+  // })
   // Update cycle progress in animation loop
   useFrame((state) => {
     if (floorMaterial && roomMaterial) {
@@ -182,7 +201,7 @@ export function RoomComponent(props: Record<string, never>) {
           <MonitorScreen geometry={nodes.monitor_screen.geometry} />
       
 
-        <ClockComponent dayMaterial={roomMaterial} nodes={nodes} />
+        {/* <ClockComponent dayMaterial={roomMaterial} nodes={nodes} /> */}
 
         <mesh
           name="walls_and_floors"
@@ -217,7 +236,9 @@ export function RoomComponent(props: Record<string, never>) {
           material={roomMaterial}
           position={[1.347, 1.19, -0.193]}
           rotation={[0, -Math.PI / 4, 0]}
-        />
+        >
+          <ChairAnimation />
+        </mesh>
         <mesh
           name="caroke_machine"
           castShadow

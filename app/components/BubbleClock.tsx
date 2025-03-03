@@ -3,7 +3,7 @@
 import * as THREE from 'three'
 import { useRef, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useControls, folder } from 'leva'
+// import { useControls, folder } from 'leva'
 
 const clockDigitVertexShader = `
    varying vec3 vNormal;
@@ -233,15 +233,15 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
     const clockSecondsMaterial = useRef<THREE.ShaderMaterial>(null)
 
     // Add controls for shader parameters
-    const shaderControls = useControls('Clock Shader', {
-        parameters: folder({
-            glowIntensity: { value: 1.0, min: 0, max: 2, step: 0.1 },
-            glowPower: { value: 2.0, min: 0, max: 5, step: 0.1 },
-            glowColor: { value: '#ffffff' },
-            secondsColor: { value: '#ff5500' },
-            timeFrequency: { value: 0.5, min: 0, max: 2, step: 0.1 }
-        })
-    })
+    // const shaderControls = useControls('Clock Shader', {
+    //     parameters: folder({
+    //         glowIntensity: { value: 1.0, min: 0, max: 2, step: 0.1 },
+    //         glowPower: { value: 2.0, min: 0, max: 5, step: 0.1 },
+    //         glowColor: { value: '#ffffff' },
+    //         secondsColor: { value: '#ff5500' },
+    //         timeFrequency: { value: 0.5, min: 0, max: 2, step: 0.1 }
+    //     })
+    // })
 
     // Organize nodes into categories
     const clockNodes = {
@@ -258,9 +258,9 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
         clockSegmentMaterial.current = new THREE.ShaderMaterial({
             uniforms: {
                 s: { value: -1.0 },
-                b: { value: shaderControls.glowIntensity },
-                p: { value: shaderControls.glowPower },
-                glowColor: { value: new THREE.Color(shaderControls.glowColor) }
+                b: { value: 1.0 },
+                p: { value: 2.0 },
+                glowColor: { value: new THREE.Color('#ffffff') }
             },
             vertexShader: clockDigitVertexShader,
             fragmentShader: clockDigitFragmentShader,
@@ -271,9 +271,9 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
         clockSecondsMaterial.current = new THREE.ShaderMaterial({
             uniforms: {
                 s: { value: -1.0 },
-                b: { value: shaderControls.glowIntensity * 1.2 },
-                p: { value: shaderControls.glowPower },
-                glowColor: { value: new THREE.Color(shaderControls.secondsColor) }
+                b: { value: 1.2 },
+                p: { value: 2.0 },
+                glowColor: { value: new THREE.Color('#ffffff') }
             },
             vertexShader: clockDigitVertexShader,
             fragmentShader: clockDigitFragmentShader,
@@ -284,16 +284,16 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
         clockBackgroundMaterial.current = new THREE.ShaderMaterial({
             uniforms: {
                 s: { value: -1.0 },
-                b: { value: shaderControls.glowIntensity },
-                p: { value: shaderControls.glowPower },
-                glowColor: { value: new THREE.Color(shaderControls.glowColor) },
+                b: { value: 1.0 },
+                p: { value: 2.0 },
+                glowColor: { value: new THREE.Color('#ffffff') },
                 uTime: { value: 0 }
             },
             vertexShader: clockBackgroundVertexShader,
             fragmentShader: clockBackgroundFragmentShader,
             transparent: true
         })
-    }, [shaderControls])
+    }, [])
 
     // Get current time
     const getDateTime = () => {
@@ -308,7 +308,7 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
     const updateClock = (currentTime: string) => {
         if (!clockSegmentMaterial.current || !clockBackgroundMaterial.current || !clockSecondsMaterial.current) return
 
-        // console.log("Current time:", currentTime);
+
         
         // First reset all segments to background material
         Object.values(clockNodes).forEach(group => {
@@ -319,7 +319,7 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
             })
         })
 
-        // Set extra bubbles to background material
+        // Set extra bubbles to background material 
         if (nodes.bubble_clock_extra_bubbles) {
             nodes.bubble_clock_extra_bubbles.material = clockBackgroundMaterial.current
         }
@@ -360,11 +360,11 @@ export default function BubbleClock({ nodes }: BubbleClockProps) {
     }
 
     // Animation loop
-    useFrame((state) => {
+    useFrame(() => {
         if (!clockBackgroundMaterial.current) return
 
         // Update rainbow animation time
-        clockBackgroundMaterial.current.uniforms.uTime.value += 0.01 * shaderControls.timeFrequency
+        clockBackgroundMaterial.current.uniforms.uTime.value += 0.01 * 0.5
         
         // Update clock every second
         setCounter(prev => {

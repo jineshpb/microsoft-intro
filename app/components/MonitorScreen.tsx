@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { folder, useControls } from "leva";
+// import { folder, useControls } from "leva";
 import { useRef } from "react";
 import * as THREE from "three";
 import { useCycleStore } from '../store/useCycleStore'
@@ -10,23 +10,23 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
 
     const cycleValue = useCycleStore(state => state.cycleValue)
 
-    const controls = useControls({
-      'Position': folder({
-        positionX: { value: -3.83, min: -5, max: 5, step: 0.001 },
-        positionY: { value: -2.32, min: -5, max: 5, step: 0.001 },
-        positionZ: { value: -0.57, min: -5, max: 5, step: 0.001 }
-      }),
-      'Rotation': folder({
-        rotationX: { value: 1.58, min: -Math.PI, max: Math.PI, step: 0.01 },
-        rotationY: { value: -3.14, min: -Math.PI, max: Math.PI, step: 0.01 },
-        rotationZ: { value: -1.57, min: -Math.PI, max: Math.PI, step: 0.01 }
-      }),
-      'Size': folder({
-        width: { value: 1024, min: 100, max: 2048, step: 10 },
-        height: { value: 655, min: 100, max: 1536, step: 10 }
-      }),
-      distanceFactor: { value: 0.93, min: 0.1, max: 5, step: 0.01 }
-    })
+    // const controls = useControls({
+    //   'Position': folder({
+    //     positionX: { value: -3.83, min: -5, max: 5, step: 0.001 },
+    //     positionY: { value: -2.32, min: -5, max: 5, step: 0.001 },
+    //     positionZ: { value: -0.57, min: -5, max: 5, step: 0.001 }
+    //   }),
+    //   'Rotation': folder({
+    //     rotationX: { value: 1.58, min: -Math.PI, max: Math.PI, step: 0.01 },
+    //     rotationY: { value: -3.14, min: -Math.PI, max: Math.PI, step: 0.01 },
+    //     rotationZ: { value: -1.57, min: -Math.PI, max: Math.PI, step: 0.01 }
+    //   }),
+    //   'Size': folder({
+    //     width: { value: 1024, min: 100, max: 2048, step: 10 },
+    //     height: { value: 655, min: 100, max: 1536, step: 10 }
+    //   }),
+    //   distanceFactor: { value: 0.93, min: 0.1, max: 5, step: 0.01 }
+    // })
   
     // Reference to the point light for the monitor glow
     const monitorLightRef = useRef<THREE.PointLight>(null);
@@ -57,12 +57,12 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
         {process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY ? (
           <Html
           transform
-          distanceFactor={controls.distanceFactor}
-          position={[controls.positionX, controls.positionY, controls.positionZ]}
-          rotation={[controls.rotationX, controls.rotationY, controls.rotationZ]}
+          distanceFactor={0.93}
+          position={[-3.83, -2.32, -0.57]}
+          rotation={[1.58, -3.14, -1.57]}
           style={{
-            width: `${controls.width}px`,
-            height: `${controls.height}px`,
+            width: `${1024}px`,
+            height: `${655}px`,
             transformOrigin: '0 0',
             overflow: 'hidden',
             borderRadius: '20px',
@@ -72,7 +72,7 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
           occlude
           zIndexRange={[1, 10]}
           calculatePosition={() => {
-            return [controls.positionX, controls.positionY, controls.positionZ]
+            return [-3.83, -2.32, -0.57]
           }}
         >
           <iframe
@@ -91,12 +91,12 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
         ):(
           <Html
       transform
-      distanceFactor={controls.distanceFactor}
-      position={[controls.positionX, controls.positionY, controls.positionZ]}
-      rotation={[controls.rotationX, controls.rotationY, controls.rotationZ]}
+      distanceFactor={0.93}
+      position={[-3.83, -2.32, -0.57]}
+      rotation={[1.58, -3.14, -1.57]}
       style={{
-        width: `${controls.width}px`,
-        height: `${controls.height}px`,
+        width: `${1024}px`,
+        height: `${655}px`,
         transformOrigin: '0 0',
         overflow: 'hidden',
         borderRadius: '20px',
@@ -110,7 +110,7 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
       occlude
       zIndexRange={[1, 10]}
       calculatePosition={() => {
-        return [controls.positionX, controls.positionY, controls.positionZ]
+        return [-3.83, -2.32, -0.57]
       }}
     >
       <div style={{
@@ -155,7 +155,7 @@ export default function MonitorScreen({ geometry }: { geometry: THREE.BufferGeom
         {/* Add point light for monitor glow effect */}
         <pointLight
           ref={monitorLightRef}
-          position={[controls.positionX - 0.2, controls.positionY - 0.2, controls.positionZ + 0.5]}
+          position={[ - 0.2, - 0.2, 0.5]}
           color="#80ccff"
           intensity={0}
           distance={5}

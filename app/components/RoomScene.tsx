@@ -4,42 +4,12 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, OrbitControls } from '@react-three/drei'
 import { Suspense } from 'react'
 import { RoomComponent } from './RoomComponent'
-
-import { YouTubeStream } from './YouTubeStream'
 import Parallax from './Parallax'
 import { useCycleStore } from '../store/useCycleStore'
 import * as THREE from 'three'  
 import { useEffect } from 'react';
 
-// This component logs camera position when it changes
-// function CameraLogger() {
-//   const { camera } = useThree();
-//   const prevPositionRef = useRef({ x: 0, y: 0, z: 0 });
-  
-//   useFrame(() => {
-//     // Check if camera position has changed
-//     if (
-//       prevPositionRef.current.x !== camera.position.x ||
-//       prevPositionRef.current.y !== camera.position.y ||
-//       prevPositionRef.current.z !== camera.position.z
-//     ) {
-//       console.log('Camera position:', {
-//         x: camera.position.x,
-//         y: camera.position.y,
-//         z: camera.position.z
-//       });
-      
-//       // Update previous position
-//       prevPositionRef.current = {
-//         x: camera.position.x,
-//         y: camera.position.y,
-//         z: camera.position.z
-//       };
-//     }
-//   });
-  
-//   return null;
-// }
+
 
 // This component handles the background and fog color changes based on day/night cycle
 function SceneBackground() {
@@ -82,9 +52,9 @@ export default function RoomScene() {
 
   return (
     <div className="w-full h-screen">
-      <YouTubeStream 
+      {/* <YouTubeStream 
         streamKey="S6jj6adI4Xo"
-      />
+      /> */}
 
       <Canvas 
         shadows
