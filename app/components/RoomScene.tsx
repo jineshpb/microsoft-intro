@@ -1,18 +1,13 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import {
-  Environment,
-  OrbitControls,
-  Html,
-  useProgress,
-} from "@react-three/drei";
+import { Environment, OrbitControls, useProgress } from "@react-three/drei";
 import { Suspense } from "react";
 import { RoomComponent } from "./RoomComponent";
 import Parallax from "./Parallax";
 import { useCycleStore } from "../store/useCycleStore";
 import * as THREE from "three";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 
 // This component handles the background and fog color changes based on day/night cycle
@@ -53,7 +48,18 @@ function SceneBackground() {
 }
 
 export default function RoomScene() {
-  const { progress, active } = useProgress();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const progress = useProgress();
+
+  useEffect(() => {
+    if (progress.active) {
+      setIsLoading(true);
+      setLoadingProgress(progress.progress);
+    } else {
+      setIsLoading(false);
+    }
+  }, [progress.active, progress.progress]);
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -87,7 +93,7 @@ export default function RoomScene() {
         </Suspense>
       </Canvas>
 
-      {active && (
+      {isLoading && (
         <div
           style={{
             position: "absolute",
@@ -101,7 +107,7 @@ export default function RoomScene() {
           }}
         >
           <LoaderCircle className="animate-spin" />
-          <div style={{ color: "white" }}>{progress.toFixed(0)}%</div>
+          <div style={{ color: "white" }}>{loadingProgress.toFixed(0)}%</div>
         </div>
       )}
     </div>
