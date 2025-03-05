@@ -14,10 +14,6 @@
   }
 }
 
-@theme {
-  --font-sans: var(--font-geist-sans);
-}
-
 body {
   color: var(--foreground);
   background: var(--background);
