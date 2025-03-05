@@ -62,7 +62,15 @@ export default function RoomScene() {
   }, [progress.active, progress.progress]);
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        overflow: "hidden", // Prevent scrolling
+        WebkitOverflowScrolling: "touch", // Better iOS scrolling if needed
+      }}
+    >
       {/* <YouTubeStream 
         streamKey="S6jj6adI4Xo"
       /> */}
@@ -75,14 +83,23 @@ export default function RoomScene() {
           far: 1000,
           fov: 25,
         }}
-        gl={{ preserveDrawingBuffer: true }}
+        gl={{
+          preserveDrawingBuffer: true,
+          antialias: true, // Better mobile rendering
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
+          touchAction: "none", // Prevent unwanted touch behaviors
+        }}
       >
         <Suspense fallback={null}>
-          <Parallax />
-          <SceneBackground />
-          <ambientLight intensity={0.5} />
-          <RoomComponent />
-          <Environment preset="city" environmentIntensity={3} />
+          <Parallax>
+            <SceneBackground />
+            <ambientLight intensity={0.5} />
+            <RoomComponent />
+            <Environment preset="city" environmentIntensity={3} />
+          </Parallax>
           <OrbitControls
             makeDefault
             target={[1, 3.5, -1]}

@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 // import { folder, useControls } from "leva";
 import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
@@ -15,6 +15,13 @@ export default function MonitorScreen() {
   const monitorLightRef = useRef<THREE.PointLight>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
   const [timestamp, setTimestamp] = useState(new Date().toLocaleString());
+
+  const { size } = useThree();
+  const isMobile = size.width < 768;
+
+  const position: [number, number, number] = isMobile
+    ? [-3.98, -2.08, -0.57] // Mobile position
+    : [-3.83, -2.32, -0.57]; // Desktop position
 
   useEffect(() => {
     const fetchEmbedUrl = async () => {
@@ -75,17 +82,11 @@ export default function MonitorScreen() {
       receiveShadow
       rotation={[0, -Math.PI / 4, -Math.PI / 2]}
     >
-      <meshPhysicalMaterial
-        color="#000000"
-        depthWrite={true}
-        transparent
-        opacity={0.4}
-      />
       {embedUrl ? (
         <Html
           transform
           distanceFactor={0.93}
-          position={[-3.83, -2.32, -0.57]}
+          position={position}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
@@ -95,12 +96,15 @@ export default function MonitorScreen() {
             borderRadius: "20px",
             backgroundColor: "#000",
             pointerEvents: "none",
-            position: "relative",
+            transform: "translate3d(0, 0, 0)",
+            WebkitTransform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
           }}
           occlude
           zIndexRange={[1, 10]}
           calculatePosition={() => {
-            return [-3.83, -2.32, -0.57];
+            return position;
           }}
         >
           <div
@@ -121,8 +125,13 @@ export default function MonitorScreen() {
                 borderRadius: "20px",
                 backgroundColor: "#000",
                 transformOrigin: "0 0",
-                filter:
-                  "brightness(1.2) contrast(1.5) grayscale(0.3) sepia(0.2)",
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                margin: 0,
+                padding: 0,
               }}
             />
             {/* Horizontal scanlines */}
@@ -198,7 +207,7 @@ export default function MonitorScreen() {
         <Html
           transform
           distanceFactor={0.93}
-          position={[-3.83, -2.32, -0.57]}
+          position={position}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
@@ -216,7 +225,7 @@ export default function MonitorScreen() {
           occlude
           zIndexRange={[1, 10]}
           calculatePosition={() => {
-            return [-3.83, -2.32, -0.57];
+            return position;
           }}
         >
           <div
