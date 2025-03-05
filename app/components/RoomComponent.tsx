@@ -217,6 +217,15 @@ export function RoomComponent(props: Record<string, never>) {
         />
 
         <MonitorScreen />
+        <mesh
+          name="monitor_screen"
+          castShadow
+          receiveShadow
+          geometry={nodes.monitor_screen.geometry}
+          material={nodes.monitor_screen.material}
+          rotation={[0, -Math.PI / 4, -Math.PI / 2]}
+          position={[-0.1, 0, 0]}
+        />
 
         <mesh
           name="walls_and_floors"

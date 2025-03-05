@@ -21,7 +21,7 @@ export default function MonitorScreen() {
       try {
         const response = await fetch("/api/youtube");
         const data: YouTubeResponse = await response.json();
-        console.log("@@embedd url", data);
+        // console.log("@@embedd url", data);
         if (data.embedUrl) {
           setEmbedUrl(data.embedUrl);
         }

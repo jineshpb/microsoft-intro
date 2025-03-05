@@ -1,7 +1,12 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls } from "@react-three/drei";
+import {
+  Environment,
+  OrbitControls,
+  Html,
+  useProgress,
+} from "@react-three/drei";
 import { Suspense } from "react";
 import { RoomComponent } from "./RoomComponent";
 import Parallax from "./Parallax";
@@ -48,30 +53,30 @@ function SceneBackground() {
 }
 
 export default function RoomScene() {
+  const { progress, active } = useProgress();
+
   return (
-    <div className="w-full h-screen">
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
       {/* <YouTubeStream 
         streamKey="S6jj6adI4Xo"
       /> */}
 
-      <Suspense fallback={<LoaderCircle className="animate-spin" />}>
-        <Canvas
-          shadows
-          camera={{
-            position: [10, 5, -1.5],
-            near: 0.1,
-            far: 1000,
-            fov: 25,
-          }}
-          gl={{ preserveDrawingBuffer: true }}
-        >
+      <Canvas
+        shadows
+        camera={{
+          position: [10, 5, -1.5],
+          near: 0.1,
+          far: 1000,
+          fov: 25,
+        }}
+        gl={{ preserveDrawingBuffer: true }}
+      >
+        <Suspense fallback={null}>
           <Parallax />
-          <SceneBackground /> {/* Add the background color controller */}
+          <SceneBackground />
           <ambientLight intensity={0.5} />
-          <Suspense fallback={null}>
-            <RoomComponent />
-            <Environment preset="city" environmentIntensity={3} />
-          </Suspense>
+          <RoomComponent />
+          <Environment preset="city" environmentIntensity={3} />
           <OrbitControls
             makeDefault
             target={[1, 3.5, -1]}
@@ -79,8 +84,28 @@ export default function RoomScene() {
             enablePan={false}
             enableRotate={false}
           />
-        </Canvas>
-      </Suspense>
+        </Suspense>
+      </Canvas>
+
+      {active && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1rem",
+          }}
+        >
+          <LoaderCircle className="animate-spin" />
+          <div style={{ color: "white" }}>{progress.toFixed(0)}%</div>
+        </div>
+      )}
     </div>
   );
 }
+
+// Create a separate Loader component that works within Canvas
