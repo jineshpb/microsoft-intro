@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import * as THREE from 'three'
-import { useRef, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import * as THREE from "three";
+import { useRef, useEffect, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
 
 const vertexShader = `
 varying vec2 vUv;
@@ -14,7 +14,7 @@ void main()
     gl_Position = projectionPosition;
 
     vUv = uv;
-}`
+}`;
 
 const fragmentShader = `
 varying vec2 vUv;
@@ -65,88 +65,92 @@ void main()
 {
     vec2 uv = vUv * vUvFrequency;
     
-    // Increased animation speed (from 0.0009 to 0.05)
-    uv.y += uTime * 0.05;
+    // Slower vertical movement
+    uv.y += uTime * 0.1;
     
-    // Add some horizontal movement
-    uv.x += sin(uTime * 0.3) * 0.1;
+    // Add some swirling motion
+    float swirl = sin(uTime * 0.5 + uv.y * 4.0) * 0.2;
+    uv.x += swirl;
 
-    float borderAlpha = min(vUv.y * 3.0, (1.0 - vUv.y) * 3.0);
-    borderAlpha = borderAlpha * (vUv.x);
+    float borderAlpha = min(vUv.y * 2.0, (1.0 - vUv.y) * 2.0);
+    borderAlpha = borderAlpha * (1.0 - abs(vUv.x - 0.5) * 2.0);
 
     float perlin = perlin2d(uv);
     perlin *= borderAlpha;
     
-    // Make the steam more visible
-    gl_FragColor = vec4(1.0, 1.0, 1.0, perlin * 0.9);
+    // Increase visibility and add some color variation
+    float alpha = perlin * 0.5;
+    vec3 color = mix(vec3(0.9, 0.9, 1.0), vec3(0.7, 0.7, 0.8), perlin);
+    
+    gl_FragColor = vec4(color, alpha);
 }
-`
+`;
 
 interface CoffeeSteamProps {
-    nodes: {
-        coffee_steam: THREE.Mesh
-    }
+  nodes: {
+    coffee_steam: THREE.Mesh;
+  };
 }
 
 export default function CoffeeSteam({ nodes }: CoffeeSteamProps) {
-    const materialRef = useRef<THREE.ShaderMaterial>(null)
-    const meshRef = useRef<THREE.Mesh>(null)
-    
-    // Define uniforms with appropriate values for animation
-    const uniforms = {
-        uTime: { value: 0 },
-        uTimeFrequency: { value: 1.0 }, // Not used directly in the shader now
-        vUvFrequency: { value: new THREE.Vector2(4.0, 5.0) } // Controls the density of the noise
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  // Create uniforms using useMemo to prevent recreating on each render
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uTimeFrequency: { value: 1.0 },
+      vUvFrequency: { value: new THREE.Vector2(4.0, 5.0) },
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if (meshRef.current && materialRef.current) {
+      meshRef.current.visible = true;
+      materialRef.current.transparent = true;
+      materialRef.current.depthWrite = false;
+      materialRef.current.blending = THREE.AdditiveBlending;
+      materialRef.current.needsUpdate = true;
     }
+  }, []);
 
-    // Make sure the mesh has the right material properties
-    useEffect(() => {
-        if (meshRef.current && materialRef.current) {
-            // Ensure the mesh is visible
-            meshRef.current.visible = true;
-            
-            // Make sure material settings are applied
-            materialRef.current.transparent = true;
-            materialRef.current.depthWrite = false;
-            materialRef.current.blending = THREE.AdditiveBlending;
-            
-            // Force a material update
-            materialRef.current.needsUpdate = true;
-        }
-    }, []);
+  // Update time uniform every frame
+  useFrame((state) => {
+    if (materialRef.current?.uniforms) {
+      // Update time value
+      materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
 
-    // Update the time uniform on each frame
-    useFrame((state) => {
-        if (materialRef.current) {
-            materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-            materialRef.current.needsUpdate = true;
-        }
-    })
-
-    // Check if the node exists before rendering
-    if (!nodes.coffee_steam) {
-        console.error("Coffee steam node not found in the model");
-        return null;
+      // No need to set needsUpdate every frame
+      // materialRef.current.needsUpdate = true;
     }
+  });
 
-    return (
-        <mesh
-            ref={meshRef}
-            name="coffee_steam"
-            geometry={nodes.coffee_steam.geometry}
-            position={nodes.coffee_steam.position}
-            rotation={nodes.coffee_steam.rotation}
-            scale={nodes.coffee_steam.scale}
-        >
-            <shaderMaterial
-                ref={materialRef}
-                vertexShader={vertexShader}
-                fragmentShader={fragmentShader}
-                uniforms={uniforms}
-                transparent
-                depthWrite={false}
-                blending={THREE.AdditiveBlending}
-            />
-        </mesh>
-    )
+  // Check if the node exists before rendering
+  if (!nodes.coffee_steam) {
+    console.error("Coffee steam node not found in the model");
+    return null;
+  }
+
+  return (
+    <mesh
+      ref={meshRef}
+      name="coffee_steam"
+      geometry={nodes.coffee_steam.geometry}
+      position={nodes.coffee_steam.position}
+      rotation={nodes.coffee_steam.rotation}
+      scale={nodes.coffee_steam.scale}
+    >
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </mesh>
+  );
 }

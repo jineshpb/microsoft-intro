@@ -1,63 +1,72 @@
-'use client'
-import * as THREE from 'three'
-import React, { useRef, useMemo } from 'react'
-import { useGLTF, useTexture } from '@react-three/drei'
+"use client";
+import * as THREE from "three";
+import React, { useRef, useMemo } from "react";
+import { useGLTF, useTexture } from "@react-three/drei";
 // import { useControls, folder } from 'leva'
-import { useFrame } from '@react-three/fiber'
-import CoffeeSteam from './CoffeeSteam'
+import { useFrame } from "@react-three/fiber";
+import CoffeeSteam from "./CoffeeSteam";
 
-import { GLTFResult } from '../types/room'
-import { useCycleStore } from '../store/useCycleStore'
-import MonitorScreen from './MonitorScreen'
+import { GLTFResult } from "../types/room";
+import { useCycleStore } from "../store/useCycleStore";
+import MonitorScreen from "./MonitorScreen";
 
 function ChairAnimation() {
   const chairRef = useRef<THREE.Mesh>(null);
   const initialRotation = -Math.PI / 4;
-  
+
   // Use useFrame to animate the chair rotation
   useFrame((state) => {
     if (chairRef.current && chairRef.current.parent) {
       // Get the parent mesh (chair_top)
       const chairMesh = chairRef.current.parent as THREE.Mesh;
-      
+
       // Create a gentle oscillation effect using sine
       // The sine function will oscillate between -1 and 1
       // We multiply by a small value (0.05) to keep the rotation subtle
       const oscillation = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.05;
-      
+
       // Apply the oscillation to the y-rotation, maintaining the initial rotation
       chairMesh.rotation.y = initialRotation + oscillation;
     }
   });
-  
+
   return <mesh ref={chairRef} />;
 }
 
 export function RoomComponent(props: Record<string, never>) {
-  const group = useRef(null)
-  const { nodes } = useGLTF('models/room_contents.glb') as unknown as GLTFResult
+  const group = useRef(null);
+  const { nodes } = useGLTF(
+    "models/room_contents.glb"
+  ) as unknown as GLTFResult;
   // const { actions } = useAnimations(animations, group)
 
-  const { 
+  const {
+    setCycleValue,
+    cycleSpeed,
 
-    setCycleValue, 
-    cycleSpeed, 
+    manualControl,
+    cyclePosition,
+  } = useCycleStore();
 
-    manualControl, 
-    cyclePosition, 
-  } = useCycleStore()
-  
-  const dayTexture = useTexture('textures/day_room_bake.jpg')
-  dayTexture.flipY = false
-  
-  const nightTexture = useTexture('textures/night_room_bake.jpg')
-  nightTexture.flipY = false
-  
-  const floorTexture = useTexture('textures/n_day_floor_bake.jpg')
-  floorTexture.flipY = false
+  const dayTexture = useTexture("textures/day_room_bake.jpg");
+  dayTexture.flipY = false;
 
-  const floorNightTexture = useTexture('textures/n_night_floor_bake.jpg')
-  floorNightTexture.flipY = false
+  const nightTexture = useTexture("textures/night_room_bake.jpg");
+  nightTexture.flipY = false;
+
+  const floorTexture = useTexture("textures/n_day_floor_bake.jpg");
+  floorTexture.flipY = false;
+
+  const floorNightTexture = useTexture("textures/n_night_floor_bake.jpg");
+  floorNightTexture.flipY = false;
+
+  const lightMapTexture = useTexture("textures/light_map_bake.jpg");
+  lightMapTexture.flipY = false;
+
+  const lightMapFloorTexture = useTexture(
+    "textures/n_light_map_floor_bake.jpg"
+  );
+  lightMapTexture.flipY = false;
 
   // Room shader vertex code (same as floor shader)
   const vertexShader = `
@@ -67,12 +76,13 @@ export function RoomComponent(props: Record<string, never>) {
       vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  `
+  `;
 
   // Room shader fragment code (same as floor shader)
   const fragmentShader = `
     uniform sampler2D uDayTexture;
     uniform sampler2D uNightTexture;
+    uniform sampler2D uLightMapTexture;
     uniform float uCycleProgress;
     
     varying vec2 vUv;
@@ -80,11 +90,18 @@ export function RoomComponent(props: Record<string, never>) {
     void main() {
       vec4 dayColor = texture2D(uDayTexture, vUv);
       vec4 nightColor = texture2D(uNightTexture, vUv);
+      vec4 lightMap = texture2D(uLightMapTexture, vUv);
       
-      // Smooth transition between day and night
-      gl_FragColor = mix(dayColor, nightColor, uCycleProgress);
+      // Mix day and night textures
+      vec4 baseColor = mix(dayColor, nightColor, uCycleProgress);
+      
+      // Add light map contribution during night
+      // Multiply light map by cycle progress to make it visible only at night
+      vec4 finalColor = baseColor + (lightMap * uCycleProgress * 0.5);
+      
+      gl_FragColor = finalColor;
     }
-  `
+  `;
 
   // Create shader material for room with day/night cycle
   const roomMaterial = useMemo(() => {
@@ -92,12 +109,13 @@ export function RoomComponent(props: Record<string, never>) {
       uniforms: {
         uDayTexture: { value: dayTexture },
         uNightTexture: { value: nightTexture },
-        uCycleProgress: { value: 0.0 }
+        uLightMapTexture: { value: lightMapTexture },
+        uCycleProgress: { value: 0.0 },
       },
       vertexShader: vertexShader,
-      fragmentShader: fragmentShader
-    })
-  }, [dayTexture, nightTexture])
+      fragmentShader: fragmentShader,
+    });
+  }, [dayTexture, nightTexture, lightMapTexture]);
 
   // Create shader material for floor with day/night cycle
   const floorMaterial = useMemo(() => {
@@ -105,31 +123,32 @@ export function RoomComponent(props: Record<string, never>) {
       uniforms: {
         uDayTexture: { value: floorTexture },
         uNightTexture: { value: floorNightTexture },
-        uCycleProgress: { value: 0.0 }
+        uLightMapTexture: { value: lightMapFloorTexture },
+        uCycleProgress: { value: 0.0 },
       },
       vertexShader: vertexShader,
-      fragmentShader: fragmentShader
-    })
-  }, [floorTexture, floorNightTexture])
+      fragmentShader: fragmentShader,
+    });
+  }, [floorTexture, floorNightTexture, lightMapFloorTexture]);
 
   // Add controls for day/night cycle
   // const cycleControls = useControls('Day/Night Cycle', {
   //   parameters: folder({
-  //     cycleSpeed: { 
-  //       value: cycleSpeed, 
-  //       min: 0.01, 
-  //       max: 1.0, 
+  //     cycleSpeed: {
+  //       value: cycleSpeed,
+  //       min: 0.01,
+  //       max: 1.0,
   //       step: 0.01,
   //       onChange: (value) => setCycleSpeed(value)
   //     },
-  //     manualControl: { 
+  //     manualControl: {
   //       value: manualControl,
   //       onChange: (value) => setManualControl(value)
   //     },
-  //     cyclePosition: { 
-  //       value: cyclePosition, 
-  //       min: 0.0, 
-  //       max: 1.0, 
+  //     cyclePosition: {
+  //       value: cyclePosition,
+  //       min: 0.0,
+  //       max: 1.0,
   //       step: 0.01,
   //       onChange: (value) => setCyclePosition(value)
   //     }
@@ -152,15 +171,14 @@ export function RoomComponent(props: Record<string, never>) {
         floorMaterial.uniforms.uCycleProgress.value = cycle;
         roomMaterial.uniforms.uCycleProgress.value = cycle;
       }
-      
+
       // Update the store instead of the window object
       setCycleValue(cycle);
     }
-  })
+  });
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
-        <MonitorScreen geometry={nodes.photo_frame.geometry}/>
         <mesh
           name="cube_frame"
           castShadow
@@ -170,7 +188,7 @@ export function RoomComponent(props: Record<string, never>) {
           position={[-2.944, 4.411, 1.205]}
           rotation={[0, 0.191, -0.788]}
         />
-        
+
         <CoffeeSteam nodes={nodes} />
 
         <mesh
@@ -198,10 +216,7 @@ export function RoomComponent(props: Record<string, never>) {
           rotation={[0, -Math.PI / 4, 0]}
         />
 
-          <MonitorScreen geometry={nodes.monitor_screen.geometry} />
-      
-
-
+        <MonitorScreen />
 
         <mesh
           name="walls_and_floors"
@@ -376,7 +391,7 @@ export function RoomComponent(props: Record<string, never>) {
           material={floorMaterial}
           rotation={[0, 0, 0]}
         />
-        
+
         <mesh
           name="lightbar_desk"
           castShadow
@@ -415,9 +430,8 @@ export function RoomComponent(props: Record<string, never>) {
           rotation={[0, -Math.PI / 4, 0]}
         />
       </group>
-
     </group>
-  )
+  );
 }
 
-useGLTF.preload('models/room_contents.glb')
+useGLTF.preload("models/room_contents.glb");
