@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
-
-const STREAM_KEY_KV = "youtube_stream_key";
 
 export async function POST(req: Request) {
   try {
@@ -14,18 +11,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Store the new stream key
-    await kv.set(STREAM_KEY_KV, streamKey);
+    // Update environment variable (this will be temporary until server restart)
+    process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY = streamKey;
 
     return NextResponse.json({
       success: true,
       message: `Stream key updated by ${updatedBy}`,
       timestamp: new Date().toISOString(),
+      currentKey: process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY,
     });
   } catch (error) {
-    console.error("Error updating stream key:", error);
+    console.error("Error in update-stream:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
