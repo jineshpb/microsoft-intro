@@ -14,6 +14,7 @@
     "@react-three/fiber": "^9.0.4",
     "@react-three/postprocessing": "^3.0.4",
     "@types/three": "^0.174.0",
+    "@vercel/kv": "^3.0.0",
     "hls.js": "^1.5.20",
     "leva": "^0.10.0",
     "lucide-react": "^0.477.0",
