@@ -87,7 +87,6 @@ export default function MonitorScreen() {
           transform
           distanceFactor={0.93}
           position={position}
-          scale={[1, 1.2, 1]}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
