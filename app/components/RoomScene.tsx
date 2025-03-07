@@ -108,6 +108,7 @@ export default function RoomScene() {
             enableRotate={false}
           />
         </Suspense>
+        <OrbitControls />
       </Canvas>
 
       {isLoading && (

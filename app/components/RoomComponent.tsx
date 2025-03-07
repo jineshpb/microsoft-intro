@@ -114,6 +114,7 @@ export function RoomComponent(props: Record<string, never>) {
       },
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
+      side: THREE.DoubleSide,
     });
   }, [dayTexture, nightTexture, lightMapTexture]);
 
@@ -217,7 +218,7 @@ export function RoomComponent(props: Record<string, never>) {
         />
 
         <MonitorScreen />
-        <mesh
+        {/* <mesh
           name="monitor_screen"
           castShadow
           receiveShadow
@@ -225,7 +226,7 @@ export function RoomComponent(props: Record<string, never>) {
           material={nodes.monitor_screen.material}
           rotation={[0, -Math.PI / 4, -Math.PI / 2]}
           position={[-0.1, 0, 0]}
-        />
+        /> */}
 
         <mesh
           name="walls_and_floors"
