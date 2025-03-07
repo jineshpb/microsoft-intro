@@ -41,14 +41,16 @@ export default function Home() {
                 <CircleSlash className="animate-pulse text-red-700" />
                 Not live
               </div>
-              <div className="absolute flex items-center bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full  justify-between text-xs">
-                You are watching a live stream from Bangalore.
-              </div>
             </>
           ) : (
-            <div className="flex items-center gap-1 p-4 ">
-              <Radio className="animate-pulse text-green-700" />
-              Live
+            <div>
+              <div className="flex items-center gap-1 p-4 ">
+                <Radio className="animate-pulse text-green-700" />
+                Live
+              </div>
+              <div className="absolute flex items-center bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full  justify-between text-xs">
+                You are watching live from Bangalore.
+              </div>
             </div>
           )}
         </div>
