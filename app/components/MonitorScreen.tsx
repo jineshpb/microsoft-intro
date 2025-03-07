@@ -5,10 +5,10 @@ import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { useCycleStore } from "../store/useCycleStore";
 
-interface YouTubeResponse {
-  embedUrl: string;
-  error?: string;
-}
+// interface YouTubeResponse {
+//   embedUrl: string;
+//   error?: string;
+// }
 
 export default function MonitorScreen() {
   const cycleValue = useCycleStore((state) => state.cycleValue);
@@ -23,21 +23,32 @@ export default function MonitorScreen() {
     ? [-3.98, -2.08, -0.57] // Mobile position
     : [-3.83, -2.32, -0.57]; // Desktop position
 
-  useEffect(() => {
-    const fetchEmbedUrl = async () => {
-      try {
-        const response = await fetch("/api/youtube");
-        const data: YouTubeResponse = await response.json();
-        // console.log("@@embedd url", data);
-        if (data.embedUrl) {
-          setEmbedUrl(data.embedUrl);
+  // Fetch stream key and update URL
+  const fetchStreamKey = async () => {
+    try {
+      const response = await fetch("/api/update-stream");
+      const data = await response.json();
+      if (data.streamKey) {
+        const embedResponse = await fetch("/api/youtube");
+        const embedData = await embedResponse.json();
+        if (embedData.embedUrl) {
+          setEmbedUrl(embedData.embedUrl);
         }
-      } catch (error) {
-        console.error("Failed to fetch YouTube embed URL:", error);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch stream key:", error);
+    }
+  };
 
-    fetchEmbedUrl();
+  // Initial fetch
+  useEffect(() => {
+    fetchStreamKey();
+  }, []);
+
+  // Poll for updates every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchStreamKey, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
