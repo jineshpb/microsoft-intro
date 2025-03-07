@@ -32,7 +32,9 @@ export async function POST(req: Request) {
 
 export async function GET() {
   const embedUrl = currentStreamKey
-    ? `https://www.youtube.com/embed/${currentStreamKey}?autoplay=1&mute=1&controls=0&enablejsapi=1&playsinline=1&loop=1&modestbranding=1`
+    ? `https://www.youtube.com/embed/${currentStreamKey}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&modestbranding=1&rel=0&enablejsapi=0&origin=${
+        process.env.NEXT_PUBLIC_APP_URL || ""
+      }`
     : null;
 
   return NextResponse.json({ embedUrl });
