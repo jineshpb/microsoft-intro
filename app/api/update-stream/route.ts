@@ -13,7 +13,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Just update the variable
     currentStreamKey = streamKey;
 
     return NextResponse.json({
@@ -23,7 +22,7 @@ export async function POST(req: Request) {
       currentKey: currentStreamKey,
     });
   } catch (error) {
-    console.error("Error in update-stream:", error);
+    console.error("Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -31,7 +30,10 @@ export async function POST(req: Request) {
   }
 }
 
-// Add a GET method to fetch current key
 export async function GET() {
-  return NextResponse.json({ streamKey: currentStreamKey });
+  const embedUrl = currentStreamKey
+    ? `https://www.youtube.com/embed/${currentStreamKey}?autoplay=1&mute=1&controls=0&enablejsapi=1&playsinline=1&loop=1&modestbranding=1`
+    : null;
+
+  return NextResponse.json({ embedUrl });
 }

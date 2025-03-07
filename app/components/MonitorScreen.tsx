@@ -23,31 +23,20 @@ export default function MonitorScreen() {
     ? [-3.98, -2.08, -0.57] // Mobile position
     : [-3.83, -2.32, -0.57]; // Desktop position
 
-  // Fetch stream key and update URL
-  const fetchStreamKey = async () => {
+  const checkStreamUrl = async () => {
     try {
       const response = await fetch("/api/update-stream");
       const data = await response.json();
-      if (data.streamKey) {
-        const embedResponse = await fetch("/api/youtube");
-        const embedData = await embedResponse.json();
-        if (embedData.embedUrl) {
-          setEmbedUrl(embedData.embedUrl);
-        }
-      }
+      setEmbedUrl(data.embedUrl);
     } catch (error) {
-      console.error("Failed to fetch stream key:", error);
+      console.error("Failed to fetch stream URL:", error);
     }
   };
 
-  // Initial fetch
+  // Check for updates every 30 seconds
   useEffect(() => {
-    fetchStreamKey();
-  }, []);
-
-  // Poll for updates every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(fetchStreamKey, 30000);
+    checkStreamUrl(); // Initial check
+    const interval = setInterval(checkStreamUrl, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -114,111 +103,92 @@ export default function MonitorScreen() {
           }}
           occlude
           zIndexRange={[1, 10]}
-          calculatePosition={() => {
-            return position;
-          }}
         >
+          <iframe
+            width="100%"
+            height="100%"
+            src={embedUrl}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            style={{
+              border: "none",
+              borderRadius: "20px",
+              backgroundColor: "#000",
+              transformOrigin: "0 0",
+            }}
+          />
+          {/* Horizontal scanlines */}
           <div
             style={{
-              width: "100%",
-              height: "100%",
-              position: "relative",
-              overflow: "hidden",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `
+                linear-gradient(
+                  to bottom,
+                  transparent,
+                  transparent 50%,
+                  rgba(0, 0, 0, 0.4) 50%,
+                  rgba(0, 0, 0, 0.4)
+                )
+              `,
+              backgroundSize: "100% 4px",
+              pointerEvents: "none",
+              opacity: 0.4,
+              mixBlendMode: "multiply",
+            }}
+          />
+          {/* Moving scanline */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "10px",
+              background: "rgba(255, 255, 255, 0.1)",
+              animation: "scanline 4s linear infinite",
+              pointerEvents: "none",
+            }}
+          />
+          {/* CRT flicker */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              animation: "flicker 0.15s infinite",
+              background: "rgba(32, 128, 32, 0.05)",
+              mixBlendMode: "screen",
+              pointerEvents: "none",
+            }}
+          />
+          {/* Vignette effect */}
+
+          {/* Timestamp */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "20px",
+              right: "20px",
+              color: "rgba(255, 255, 255, 0.8)",
+              fontFamily: "monospace",
+              fontSize: "14px",
+              textShadow: "1px 1px 1px rgba(0, 0, 0, 0.5)",
+              pointerEvents: "none",
             }}
           >
-            <iframe
-              width="100%"
-              height="100%"
-              src={embedUrl}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              style={{
-                border: "none",
-                borderRadius: "20px",
-                backgroundColor: "#000",
-                transformOrigin: "0 0",
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                margin: 0,
-                padding: 0,
-              }}
-            />
-            {/* Horizontal scanlines */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: `
-                  linear-gradient(
-                    to bottom,
-                    transparent,
-                    transparent 50%,
-                    rgba(0, 0, 0, 0.4) 50%,
-                    rgba(0, 0, 0, 0.4)
-                  )
-                `,
-                backgroundSize: "100% 4px",
-                pointerEvents: "none",
-                opacity: 0.4,
-                mixBlendMode: "multiply",
-              }}
-            />
-            {/* Moving scanline */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "10px",
-                background: "rgba(255, 255, 255, 0.1)",
-                animation: "scanline 4s linear infinite",
-                pointerEvents: "none",
-              }}
-            />
-            {/* CRT flicker */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                animation: "flicker 0.15s infinite",
-                background: "rgba(32, 128, 32, 0.05)",
-                mixBlendMode: "screen",
-                pointerEvents: "none",
-              }}
-            />
-            {/* Vignette effect */}
-
-            {/* Timestamp */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "20px",
-                right: "20px",
-                color: "rgba(255, 255, 255, 0.8)",
-                fontFamily: "monospace",
-                fontSize: "14px",
-                textShadow: "1px 1px 1px rgba(0, 0, 0, 0.5)",
-                pointerEvents: "none",
-              }}
-            >
-              {timestamp}
-            </div>
+            {timestamp}
           </div>
         </Html>
       ) : (
         <Html
           transform
           distanceFactor={0.93}
-          position={position}
+          position={[-3.83, -2.32, -0.57]}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
@@ -235,9 +205,6 @@ export default function MonitorScreen() {
           }}
           occlude
           zIndexRange={[1, 10]}
-          calculatePosition={() => {
-            return position;
-          }}
         >
           <div
             style={{
