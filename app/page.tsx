@@ -1,8 +1,29 @@
+"use client";
+import { useEffect, useState } from "react";
 import { CircleSlash, MoveLeft, Radio } from "lucide-react";
 import RoomScene from "./components/RoomScene";
 import Link from "next/link";
 
 export default function Home() {
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    const checkStreamStatus = async () => {
+      try {
+        const response = await fetch("/api/update-stream");
+        const data = await response.json();
+        setIsLive(!!data.embedUrl);
+      } catch (error) {
+        console.error("Failed to check stream status:", error);
+        setIsLive(false);
+      }
+    };
+
+    checkStreamStatus();
+    const interval = setInterval(checkStreamStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="w-full h-[100dvh]">
       <main className="w-full h-full">
@@ -14,11 +35,16 @@ export default function Home() {
             jineshb.me
           </div>
 
-          {!process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY ? (
-            <div className="flex items-center gap-2 p-4 justify-center">
-              <CircleSlash className="animate-pulse text-red-700" />
-              Not live
-            </div>
+          {!isLive ? (
+            <>
+              <div className="flex items-center gap-2 p-4 justify-center">
+                <CircleSlash className="animate-pulse text-red-700" />
+                Not live
+              </div>
+              <div className="absolute flex items-center bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full  justify-between text-xs">
+                You are watching a live stream from Bangalore.
+              </div>
+            </>
           ) : (
             <div className="flex items-center gap-1 p-4 ">
               <Radio className="animate-pulse text-green-700" />
@@ -28,10 +54,6 @@ export default function Home() {
         </div>
 
         <RoomScene />
-
-        <div className="absolute flex items-center bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full  justify-between text-xs">
-          You are watching a live stream from Bangalore.
-        </div>
       </main>
     </div>
   );

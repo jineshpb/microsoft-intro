@@ -21,7 +21,7 @@ export default function MonitorScreen() {
 
   const position: [number, number, number] = isMobile
     ? [-3.98, -2.08, -0.57] // Mobile position
-    : [-3.83, -2.32, -0.57]; // Desktop position
+    : [-3.82, -2.31, -0.575]; // Desktop position
 
   const checkStreamUrl = async () => {
     try {
@@ -87,6 +87,7 @@ export default function MonitorScreen() {
           transform
           distanceFactor={0.93}
           position={position}
+          scale={[1, 1.2, 1]}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
@@ -188,7 +189,7 @@ export default function MonitorScreen() {
         <Html
           transform
           distanceFactor={0.93}
-          position={[-3.83, -2.32, -0.57]}
+          position={position}
           rotation={[1.58, -3.14, -1.57]}
           style={{
             width: `${1024}px`,
