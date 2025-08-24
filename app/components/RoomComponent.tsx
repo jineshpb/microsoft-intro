@@ -10,8 +10,23 @@ import { GLTFResult } from "../types/room";
 import { useCycleStore } from "../store/useCycleStore";
 import MonitorScreen from "./MonitorScreen";
 
+function CubeFrameAnimation() {
+  const cubeFrameRef = useRef<THREE.Mesh>(null);
+  useFrame((state) => {
+    if (cubeFrameRef.current && cubeFrameRef.current.parent) {
+      // Get the parent mesh (cube_frame)
+      const cubeFrameMesh = cubeFrameRef.current.parent as THREE.Mesh;
+
+      cubeFrameMesh.rotation.y = state.clock.getElapsedTime() * 0.5;
+      cubeFrameMesh.rotation.x = state.clock.getElapsedTime() * 0.5;
+    }
+  });
+  return <mesh ref={cubeFrameRef} />;
+}
+
 function ChairAnimation() {
   const chairRef = useRef<THREE.Mesh>(null);
+
   const initialRotation = -Math.PI / 4;
 
   // Use useFrame to animate the chair rotation
@@ -188,7 +203,9 @@ export function RoomComponent(props: Record<string, never>) {
           material={roomMaterial}
           position={[-2.944, 4.411, 1.205]}
           rotation={[0, 0.191, -0.788]}
-        />
+        >
+          <CubeFrameAnimation />
+        </mesh>
 
         <CoffeeSteam nodes={nodes} />
 

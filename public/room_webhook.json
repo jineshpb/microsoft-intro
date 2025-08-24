@@ -1,0 +1,284 @@
+{
+  "name": "room-webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "id": "5d36dfcc-f76e-4e53-b74b-030744e6f08b",
+      "name": "Telegram Trigger",
+      "webhookId": "1008a962-bb72-41b6-9d01-0cbcf88292b0",
+      "credentials": {
+        "telegramApi": {
+          "id": "fMENOXOKlw3REyYx",
+          "name": "Room stream sync"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1c1ca387-2b70-4f31-ba21-7ab0ae559db9",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/setstream",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [220, 0],
+      "id": "be487b5c-4157-49cc-9915-824e12112144",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "❌ Invalid command. Available commands: /setstream YOUR_STREAM_KEY - Update stream key /status - Check current stream status /help - Show available commands",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [440, 100],
+      "id": "f87edce8-1ffd-4a27-b164-35117c410faa",
+      "name": "Telegram",
+      "webhookId": "8121d962-c550-4944-b0c1-63052e417dc6",
+      "credentials": {
+        "telegramApi": {
+          "id": "K98cTlsaYmoCPQQp",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function Node - \"Extract Stream Key\"\nconst message = items[0].json.message;\nconst text = message.text;\nconst chatId = message.chat.id;\n\n// Check if command has a parameter\nconst streamKey = text.split('/setstream ')[1]?.trim();\n\nif (!streamKey) {\n  return {\n    json: {\n      chatId: chatId,\n      error: true,\n      message: '❌ Please provide a stream key.\\nUsage: /setstream YOUR_STREAM_KEY'\n    }\n  }\n}\n\nreturn {\n  json: {\n    chatId: chatId,\n    userId: message.from.id,\n    streamKey: streamKey,\n    timestamp: new Date().toISOString(),\n    userName: `${message.from.first_name} ${message.from.last_name}`.trim()\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, -100],
+      "id": "eb30f189-a7f4-459f-b2e3-fdf1b54d94a4",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://live.jineshb.me/api/update-stream",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "JSON"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "streamKey",
+              "value": "={{ $json.streamKey }}"
+            },
+            {
+              "name": "updatedBy",
+              "value": "={{ $json.userName }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -100],
+      "id": "c3357144-6246-4648-9d50-b203dfa6abfb",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "expression": "*/5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 200],
+      "id": "schedule-node",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://live.jineshb.me/api/update-stream",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 200],
+      "id": "check-stream-node",
+      "name": "Check Stream"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "value1": "={{ $json.embedUrl }}",
+              "operation": "exists"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "position": [440, 200],
+      "id": "check-stream-status",
+      "name": "Check Status"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://live.jineshb.me/api/update-stream",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "streamKey",
+              "value": "={{ $json.currentKey }}"
+            },
+            {
+              "name": "updatedBy",
+              "value": "n8n_auto_refresh"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [660, 200],
+      "id": "refresh-stream-node",
+      "name": "Refresh Stream"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Stream",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Stream": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Refresh Stream",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3e526def-0b04-4f24-b762-7972ffdbb486",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "596e2cbba7bcd6aeca7ee45654c689d69f717a73c8d35b26ed791398f3f9b664"
+  },
+  "id": "24DOFyjwmF4goo9g",
+  "tags": []
+}
