@@ -43,14 +43,14 @@ export async function POST(req: Request) {
     if (!youtubeUrl) {
       return NextResponse.json(
         { error: "YouTube URL is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!isValidYouTubeUrl(youtubeUrl)) {
       return NextResponse.json(
         { error: "Invalid YouTube URL provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     if (!extractedKey) {
       return NextResponse.json(
         { error: "Could not extract video ID from YouTube URL" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     console.error("Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

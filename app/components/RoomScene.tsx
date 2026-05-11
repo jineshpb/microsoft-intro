@@ -1,13 +1,19 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls, useProgress } from "@react-three/drei";
+import { Environment, useProgress } from "@react-three/drei";
 import { Suspense } from "react";
+import { DEFAULT_ROOM_CAMERA } from "../constants/sceneCamera";
 import { RoomComponent } from "./RoomComponent";
 import Parallax from "./Parallax";
+import SceneCameraControls from "./SceneCameraControls";
+import MonitorFocusControls from "./MonitorFocusControls";
+import { MONITOR_FOCUS_LOCKED_THRESHOLD } from "../constants/sceneCamera";
+import { useCameraFocusStore } from "../store/useCameraFocusStore";
 import { useCycleStore } from "../store/useCycleStore";
 import * as THREE from "three";
 import { useEffect, useState } from "react";
+import { Leva } from "leva";
 import { LoaderCircle } from "lucide-react";
 
 // This component handles the background and fog color changes based on day/night cycle
@@ -31,7 +37,7 @@ function SceneBackground() {
     const currentColor = new THREE.Color().lerpColors(
       dayColor,
       nightColor,
-      cycleValue
+      cycleValue,
     );
 
     // Update scene background and fog color
@@ -51,6 +57,8 @@ export default function RoomScene() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progress = useProgress();
+  const focusProgress = useCameraFocusStore((state) => state.focusProgress);
+  const isMonitorFocused = focusProgress >= MONITOR_FOCUS_LOCKED_THRESHOLD;
 
   useEffect(() => {
     if (progress.active) {
@@ -71,17 +79,17 @@ export default function RoomScene() {
         WebkitOverflowScrolling: "touch", // Better iOS scrolling if needed
       }}
     >
-      {/* <YouTubeStream 
-        streamKey="S6jj6adI4Xo"
-      /> */}
+      {process.env.NODE_ENV === "development" ? <Leva collapsed /> : null}
+
+      <MonitorFocusControls />
 
       <Canvas
         shadows
         camera={{
-          position: [10, 5, -1.5],
+          position: DEFAULT_ROOM_CAMERA.position,
           near: 0.1,
           far: 1000,
-          fov: 25,
+          fov: DEFAULT_ROOM_CAMERA.fov,
         }}
         gl={{
           preserveDrawingBuffer: true,
@@ -90,7 +98,8 @@ export default function RoomScene() {
         style={{
           width: "100%",
           height: "100%",
-          touchAction: "none", // Prevent unwanted touch behaviors
+          touchAction: "none",
+          pointerEvents: isMonitorFocused ? "none" : "auto",
         }}
       >
         <Suspense fallback={null}>
@@ -100,15 +109,8 @@ export default function RoomScene() {
             <RoomComponent />
             <Environment preset="city" environmentIntensity={3} />
           </Parallax>
-          <OrbitControls
-            makeDefault
-            target={[1, 3.5, -1]}
-            enableZoom={false}
-            enablePan={false}
-            enableRotate={false}
-          />
+          <SceneCameraControls />
         </Suspense>
-        {/* <OrbitControls /> */}
       </Canvas>
 
       {isLoading && (

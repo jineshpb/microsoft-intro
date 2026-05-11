@@ -1,26 +1,23 @@
-'use client'
-import React from 'react'
+"use client";
+
+import React from "react";
+
+const MONITOR_PAGE_SRC = "/monitor";
 
 interface YouTubeStreamProps {
-  streamKey: string
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function YouTubeStream({ streamKey }: YouTubeStreamProps) {
+export const YouTubeStream = ({ className, style }: YouTubeStreamProps) => {
   return (
-    <div style={{ 
-      position: 'fixed', 
-
-      width: '320px',
-      height: '180px',
-      zIndex: 1000 
-    }}>
-      <iframe
-        width="100%"
-        height="100%"
-        src={`https://www.youtube.com/embed/${streamKey}?autoplay=1&mute=1&controls=1&enablejsapi=1&playsinline=1&loop=1`}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        style={{ border: 'none' }}
-      />
-    </div>
-  )
-}
+    <iframe
+      width="100%"
+      height="100%"
+      src={MONITOR_PAGE_SRC}
+      title="Monitor page"
+      className={className}
+      style={{ border: "none", display: "block", ...style }}
+    />
+  );
+};

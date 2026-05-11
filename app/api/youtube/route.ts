@@ -4,14 +4,14 @@ export async function GET() {
   try {
     // Get current stream key from update-stream endpoint
     const res = await fetch(
-      `${process.env.VERCEL_URL || "http://localhost:3000"}/api/update-stream`
+      `${process.env.VERCEL_URL || "http://localhost:3001"}/api/update-stream`,
     );
     const data = await res.json();
 
     if (!data.streamKey) {
       return NextResponse.json(
         { error: "No stream key found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -22,7 +22,7 @@ export async function GET() {
     console.error("Error fetching stream key:", error);
     return NextResponse.json(
       { error: "Failed to get stream URL" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

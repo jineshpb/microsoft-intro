@@ -1,0 +1,162 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+import type { XpAlbumPhoto } from "../content/album";
+import type { XpOpenWindow, XpWindowId } from "../types";
+import { AboutMeWindowContent } from "./windows/AboutMeWindowContent";
+import { AlbumExplorerWindowContent } from "./windows/AlbumExplorerWindowContent";
+import { AlbumPictureViewerWindowContent } from "./windows/AlbumPictureViewerWindowContent";
+import { InternetExplorerWindowContent } from "./windows/InternetExplorerWindowContent";
+
+type XpWindowProps = {
+  windowItem: XpOpenWindow;
+  onClose: (id: XpWindowId) => void;
+  onFocus: (id: XpWindowId) => void;
+  onMove: (id: XpWindowId, x: number, y: number) => void;
+  onOpenAlbumPhoto: (photo: XpAlbumPhoto) => void;
+};
+
+const renderWindowContent = (
+  windowItem: XpOpenWindow,
+  onOpenAlbumPhoto: (photo: XpAlbumPhoto) => void,
+) => {
+  if (windowItem.id === "about-me") {
+    return <AboutMeWindowContent />;
+  }
+
+  if (windowItem.id === "album") {
+    return <AlbumExplorerWindowContent onOpenPhoto={onOpenAlbumPhoto} />;
+  }
+
+  if (windowItem.id === "album-viewer") {
+    return <AlbumPictureViewerWindowContent photo={windowItem.viewerPhoto} />;
+  }
+
+  return <InternetExplorerWindowContent />;
+};
+
+export const XpWindow = ({
+  windowItem,
+  onClose,
+  onFocus,
+  onMove,
+  onOpenAlbumPhoto,
+}: XpWindowProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleClose = () => {
+    onClose(windowItem.id);
+  };
+
+  const handleFocus = () => {
+    onFocus(windowItem.id);
+  };
+
+  const handleCloseKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    handleClose();
+  };
+
+  const handleTitlePointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    handleFocus();
+    event.preventDefault();
+
+    const pointerId = event.pointerId;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const originX = windowItem.x;
+    const originY = windowItem.y;
+    const titleBar = event.currentTarget;
+
+    setIsDragging(true);
+    titleBar.setPointerCapture(pointerId);
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      if (moveEvent.pointerId !== pointerId) {
+        return;
+      }
+
+      onMove(
+        windowItem.id,
+        originX + (moveEvent.clientX - startX),
+        originY + (moveEvent.clientY - startY),
+      );
+    };
+
+    const handlePointerEnd = (endEvent: PointerEvent) => {
+      if (endEvent.pointerId !== pointerId) {
+        return;
+      }
+
+      setIsDragging(false);
+      titleBar.releasePointerCapture(pointerId);
+      titleBar.removeEventListener("pointermove", handlePointerMove);
+      titleBar.removeEventListener("pointerup", handlePointerEnd);
+      titleBar.removeEventListener("pointercancel", handlePointerEnd);
+    };
+
+    titleBar.addEventListener("pointermove", handlePointerMove);
+    titleBar.addEventListener("pointerup", handlePointerEnd);
+    titleBar.addEventListener("pointercancel", handlePointerEnd);
+  };
+
+  return (
+    <section
+      aria-label={windowItem.title}
+      className="absolute flex flex-col overflow-hidden rounded-t-lg border border-[#0a5ec7] bg-[#ece9d8] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+      style={{
+        left: windowItem.x,
+        top: windowItem.y,
+        width: windowItem.width,
+        height: windowItem.height,
+        zIndex: windowItem.zIndex,
+      }}
+      onMouseDown={handleFocus}
+    >
+      <header
+        className={`flex select-none items-center justify-between bg-gradient-to-b from-[#3a8fe7] to-[#1c5fb8] px-2 py-1 text-white ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+      >
+        <div
+          className="flex min-w-0 flex-1 items-center gap-2"
+          onPointerDown={handleTitlePointerDown}
+        >
+          <Image
+            src={windowItem.icon}
+            alt=""
+            width={16}
+            height={16}
+            aria-hidden="true"
+          />
+          <span className="truncate text-[12px] font-semibold">
+            {windowItem.title}
+          </span>
+        </div>
+        <button
+          type="button"
+          aria-label={`Close ${windowItem.title}`}
+          onClick={handleClose}
+          onKeyDown={handleCloseKeyDown}
+          className="flex h-5 w-5 shrink-0 cursor-default items-center justify-center rounded-sm border border-[#8f2f2f] bg-gradient-to-b from-[#f4a6a6] to-[#d94b4b] text-[11px] font-bold leading-none text-white"
+        >
+          X
+        </button>
+      </header>
+      <div className="min-h-0 flex-1 border-t border-[#0a5ec7]">
+        {renderWindowContent(windowItem, onOpenAlbumPhoto)}
+      </div>
+    </section>
+  );
+};

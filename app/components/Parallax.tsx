@@ -3,6 +3,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import { useCameraFocusStore } from "../store/useCameraFocusStore";
 
 // This component adds cursor-based movement to the scene
 export default function Parallax({ children }: { children: React.ReactNode }) {
@@ -10,9 +11,10 @@ export default function Parallax({ children }: { children: React.ReactNode }) {
   const targetRotation = useRef({ x: 0, y: 0 });
   const { size } = useThree();
   const isMobile = size.width < 768;
+  const focusProgress = useCameraFocusStore((state) => state.focusProgress);
 
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || focusProgress > 0) return;
 
     const handleMove = (clientX: number) => {
       if (!groupRef.current) return;
@@ -32,10 +34,10 @@ export default function Parallax({ children }: { children: React.ReactNode }) {
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
     };
-  }, [isMobile]);
+  }, [focusProgress, isMobile]);
 
   useFrame(() => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || focusProgress > 0) return;
 
     // Only apply horizontal rotation
     groupRef.current.rotation.y +=
