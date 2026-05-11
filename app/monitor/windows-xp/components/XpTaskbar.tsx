@@ -11,6 +11,8 @@ import { XpSystemTray } from "./XpSystemTray";
 type XpTaskbarProps = {
   isStartMenuOpen: boolean;
   onToggleStartMenu: () => void;
+  onCloseStartMenu: () => void;
+  onOpenWindow: (id: XpWindowId) => void;
   openWindows: XpOpenWindow[];
   onFocusWindow: (id: XpWindowId) => void;
 };
@@ -18,6 +20,8 @@ type XpTaskbarProps = {
 export const XpTaskbar = ({
   isStartMenuOpen,
   onToggleStartMenu,
+  onCloseStartMenu,
+  onOpenWindow,
   openWindows,
   onFocusWindow,
 }: XpTaskbarProps) => {
@@ -42,7 +46,11 @@ export const XpTaskbar = ({
       className="relative z-50 flex h-10 items-stretch border-t border-[#4f86df] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
       style={{ backgroundColor: XP_COLORS.taskbar }}
     >
-      <XpStartMenu isOpen={isStartMenuOpen} />
+      <XpStartMenu
+        isOpen={isStartMenuOpen}
+        onOpenWindow={onOpenWindow}
+        onDismiss={onCloseStartMenu}
+      />
       <XpStartButton isOpen={isStartMenuOpen} onToggle={onToggleStartMenu} />
 
       <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto px-2">

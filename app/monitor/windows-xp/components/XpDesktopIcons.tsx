@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { XP_DESKTOP_GRID, XP_DESKTOP_ICONS } from "../constants";
 import { DESKTOP_ICON_WINDOW_MAP } from "../content/windows";
-import { XP_DESKTOP_ICONS } from "../constants";
 import type { XpWindowId } from "../types";
 
 type XpDesktopIconsProps = {
@@ -32,7 +32,13 @@ export const XpDesktopIcons = ({ onOpenWindow }: XpDesktopIconsProps) => {
   };
 
   return (
-    <div className="absolute left-3 top-3 z-10 flex flex-col gap-5">
+    <div
+      className="absolute inset-0 z-0 grid gap-1 p-3"
+      style={{
+        gridTemplateColumns: `repeat(${XP_DESKTOP_GRID.columns}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${XP_DESKTOP_GRID.rows}, minmax(0, 1fr))`,
+      }}
+    >
       {XP_DESKTOP_ICONS.map((icon) => (
         <button
           key={icon.id}
@@ -40,10 +46,14 @@ export const XpDesktopIcons = ({ onOpenWindow }: XpDesktopIconsProps) => {
           aria-label={`Open ${icon.label}`}
           onDoubleClick={() => handleIconDoubleClick(icon.id)}
           onKeyDown={(event) => handleIconKeyDown(event, icon.id)}
-          className="flex w-20 flex-col items-center gap-1 border-0 bg-transparent p-0 text-center"
+          className="flex flex-col items-center justify-start gap-1 border-0 bg-transparent p-0 text-center"
+          style={{
+            gridColumn: icon.column,
+            gridRow: icon.row,
+          }}
         >
           <Image src={icon.icon} alt="" width={40} height={40} aria-hidden="true" />
-          <span className="text-[11px] leading-tight text-white [text-shadow:1px_1px_1px_rgba(0,0,0,0.9)]">
+          <span className="max-w-[88px] text-[11px] leading-tight text-white [text-shadow:1px_1px_1px_rgba(0,0,0,0.9)]">
             {icon.label}
           </span>
         </button>

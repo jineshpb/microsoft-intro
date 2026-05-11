@@ -16,6 +16,7 @@ const createOpenWindow = (
   title: options?.title ?? XP_WINDOW_DEFINITIONS[id].title,
   zIndex,
   viewerPhoto: options?.viewerPhoto,
+  careerStint: options?.careerStint,
 });
 
 export const useXpWindows = () => {
@@ -61,6 +62,23 @@ export const useXpWindows = () => {
                       title:
                         options?.title ??
                         `${viewerPhoto.filename} - Windows Picture and Fax Viewer`,
+                    }
+                  : windowItem,
+              );
+            }
+
+            const careerStint = options?.careerStint;
+
+            if (id === "career-stint" && careerStint) {
+              return currentWindows.map((windowItem) =>
+                windowItem.id === id
+                  ? {
+                      ...windowItem,
+                      zIndex: nextZIndex,
+                      careerStint,
+                      title:
+                        options?.title ??
+                        `${careerStint.label} - ${careerStint.volumeName}`,
                     }
                   : windowItem,
               );

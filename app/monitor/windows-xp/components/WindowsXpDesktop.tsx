@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useXpWindows } from "../hooks/useXpWindows";
+import type { XpWindowId } from "../types";
 import { XpDesktopIcons } from "./XpDesktopIcons";
 import { XpTaskbar } from "./XpTaskbar";
 import { XpWindowManager } from "./XpWindowManager";
@@ -13,6 +14,15 @@ export const WindowsXpDesktop = () => {
 
   const handleToggleStartMenu = () => {
     setIsStartMenuOpen((currentValue) => !currentValue);
+  };
+
+  const handleCloseStartMenu = () => {
+    setIsStartMenuOpen(false);
+  };
+
+  const handleStartMenuOpenWindow = (id: XpWindowId) => {
+    openWindow(id);
+    setIsStartMenuOpen(false);
   };
 
   return (
@@ -34,6 +44,8 @@ export const WindowsXpDesktop = () => {
       <XpTaskbar
         isStartMenuOpen={isStartMenuOpen}
         onToggleStartMenu={handleToggleStartMenu}
+        onCloseStartMenu={handleCloseStartMenu}
+        onOpenWindow={handleStartMenuOpenWindow}
         openWindows={openWindows}
         onFocusWindow={focusWindow}
       />

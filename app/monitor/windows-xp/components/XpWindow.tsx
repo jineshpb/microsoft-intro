@@ -3,11 +3,15 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { XpAlbumPhoto } from "../content/album";
+import type { XpCareerStint } from "../content/career";
 import type { XpOpenWindow, XpWindowId } from "../types";
+import { AboutMePdfWindowContent } from "./windows/AboutMePdfWindowContent";
 import { AboutMeWindowContent } from "./windows/AboutMeWindowContent";
 import { AlbumExplorerWindowContent } from "./windows/AlbumExplorerWindowContent";
 import { AlbumPictureViewerWindowContent } from "./windows/AlbumPictureViewerWindowContent";
+import { CareerStintWindowContent } from "./windows/CareerStintWindowContent";
 import { InternetExplorerWindowContent } from "./windows/InternetExplorerWindowContent";
+import { MyComputerWindowContent } from "./windows/MyComputerWindowContent";
 
 type XpWindowProps = {
   windowItem: XpOpenWindow;
@@ -15,14 +19,20 @@ type XpWindowProps = {
   onFocus: (id: XpWindowId) => void;
   onMove: (id: XpWindowId, x: number, y: number) => void;
   onOpenAlbumPhoto: (photo: XpAlbumPhoto) => void;
+  onOpenCareerStint: (stint: XpCareerStint) => void;
 };
 
 const renderWindowContent = (
   windowItem: XpOpenWindow,
   onOpenAlbumPhoto: (photo: XpAlbumPhoto) => void,
+  onOpenCareerStint: (stint: XpCareerStint) => void,
 ) => {
   if (windowItem.id === "about-me") {
     return <AboutMeWindowContent />;
+  }
+
+  if (windowItem.id === "aboutme-pdf") {
+    return <AboutMePdfWindowContent />;
   }
 
   if (windowItem.id === "album") {
@@ -31,6 +41,14 @@ const renderWindowContent = (
 
   if (windowItem.id === "album-viewer") {
     return <AlbumPictureViewerWindowContent photo={windowItem.viewerPhoto} />;
+  }
+
+  if (windowItem.id === "career") {
+    return <MyComputerWindowContent onOpenStint={onOpenCareerStint} />;
+  }
+
+  if (windowItem.id === "career-stint") {
+    return <CareerStintWindowContent stint={windowItem.careerStint} />;
   }
 
   return <InternetExplorerWindowContent />;
@@ -42,6 +60,7 @@ export const XpWindow = ({
   onFocus,
   onMove,
   onOpenAlbumPhoto,
+  onOpenCareerStint,
 }: XpWindowProps) => {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -116,7 +135,7 @@ export const XpWindow = ({
   return (
     <section
       aria-label={windowItem.title}
-      className="absolute flex flex-col overflow-hidden rounded-t-lg border border-[#0a5ec7] bg-[#ece9d8] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+      className="pointer-events-auto absolute flex flex-col overflow-hidden rounded-t-lg border border-[#0a5ec7] bg-[#ece9d8] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
       style={{
         left: windowItem.x,
         top: windowItem.y,
@@ -155,7 +174,7 @@ export const XpWindow = ({
         </button>
       </header>
       <div className="min-h-0 flex-1 border-t border-[#0a5ec7]">
-        {renderWindowContent(windowItem, onOpenAlbumPhoto)}
+        {renderWindowContent(windowItem, onOpenAlbumPhoto, onOpenCareerStint)}
       </div>
     </section>
   );

@@ -14,41 +14,67 @@ export const XP_COLORS = {
   taskbarTray: "#1a4fb8",
 } as const;
 
+export const XP_DESKTOP_GRID = {
+  columns: 10,
+  rows: 8,
+} as const;
+
 export const XP_DESKTOP_ICONS = [
   {
     id: "recycle-bin",
     label: "Recycle Bin",
     icon: "/xp-icons/Recycle-Bin.png",
+    column: 8,
+    row: 3,
   },
   {
     id: "Career",
     label: "My Computer",
     icon: "/xp-icons/My-Computer.png",
+    column: 3,
+    row: 1,
   },
   {
     id: "my-documents",
     label: "My Documents",
     icon: "/xp-icons/Folder Closed.png",
+    column: 1,
+    row: 2,
   },
   {
     id: "internet-explorer",
     label: "Internet Explorer",
     icon: "/xp-icons/Internet Explorer 6.png",
+    column: 5,
+    row: 3,
   },
   {
     id: "About me",
     label: "Jinesh.txt",
     icon: "/xp-icons/TXT.png",
+    column: 3,
+    row: 4,
+  },
+  {
+    id: "aboutme-pdf",
+    label: "aboutme.pdf",
+    icon: "/xp-icons/pdf.png",
+    column: 2,
+    row: 5,
   },
   {
     id: "Recent posts",
     label: "Recent posts",
     icon: "/xp-icons/Notepad.png",
+    column: 1,
+    row: 6,
   },
   {
     id: "Images",
     label: "Album",
     icon: "/xp-icons/My Pictures.png",
+    column: 1,
+    row: 7,
   },
 ] as const;
 
@@ -121,3 +147,96 @@ export const XP_START_MENU_RIGHT = [
     icon: "/xp-icons/Run.png",
   },
 ] as const;
+
+export const XP_EXPLORER_MENU_ITEMS = [
+  { label: "File", icon: null },
+  { label: "Edit", icon: null },
+  { label: "View", icon: null },
+  { label: "Favorites", icon: null },
+  { label: "Tools", icon: null },
+  { label: "Help", icon: null },
+] as const;
+
+export const XP_EXPLORER_NAVBAR_ITEMS = [
+  {
+    id: "back",
+    label: "Back",
+    icon: "Back.png",
+    showLabel: true,
+    kind: "button",
+  },
+  {
+    id: "forward",
+    label: "Forward",
+    icon: "Forward.png",
+    showLabel: false,
+    kind: "button",
+  },
+  {
+    id: "up",
+    label: "Up",
+    icon: "Folder Closed.png",
+    showLabel: false,
+    kind: "button",
+  },
+  { id: "separator-1", kind: "separator" },
+  {
+    id: "search",
+    label: "Search",
+    icon: "Search.png",
+    showLabel: true,
+    kind: "button",
+  },
+  {
+    id: "folders",
+    label: "Folders",
+    icon: "My Documents.png",
+    showLabel: true,
+    kind: "button",
+  },
+  {
+    id: "view",
+    label: "View",
+    icon: "Icon View.png",
+    showLabel: true,
+    kind: "button",
+  },
+] as const;
+
+export const XP_NOTEPAD_MENU_ITEMS = [
+  { label: "File", icon: null },
+  { label: "Edit", icon: null },
+  { label: "Format", icon: null },
+  { label: "View", icon: null },
+  { label: "Help", icon: null },
+] as const;
+
+export const XP_PICTURE_VIEWER_MENU_ITEMS = [
+  { label: "File", icon: null },
+  { label: "Edit", icon: null },
+  { label: "View", icon: null },
+  { label: "Help", icon: null },
+] as const;
+
+export const XP_PICTURE_VIEWER_NAVBAR_ITEMS = [
+  { id: "save", label: "Save", icon: null, showLabel: true, kind: "button" },
+  { id: "print", label: "Print", icon: null, showLabel: true, kind: "button" },
+  { id: "zoom", label: "Zoom", icon: null, showLabel: true, kind: "button" },
+  {
+    id: "actual-size",
+    label: "Actual Size",
+    icon: null,
+    showLabel: true,
+    kind: "button",
+  },
+  { id: "next", label: "Next", icon: null, showLabel: true, kind: "button" },
+  {
+    id: "previous",
+    label: "Previous",
+    icon: null,
+    showLabel: true,
+    kind: "button",
+  },
+] as const;
+
+export const getXpIconPath = (icon: string) => `/xp-icons/${icon}`;
