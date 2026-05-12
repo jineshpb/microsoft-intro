@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { playXpSound } from "../utils/xpAudio";
 import type { XpAlbumPhoto } from "../content/album";
 import type { XpCareerStint } from "../content/career";
 import type { XpOpenWindow, XpWindowId } from "../types";
@@ -14,6 +15,7 @@ import { InternetExplorerWindowContent } from "./windows/InternetExplorerWindowC
 import { MinesweeperWindowContent } from "./windows/MinesweeperWindowContent";
 import { MyComputerWindowContent } from "./windows/MyComputerWindowContent";
 import { RecycleBinWindowContent } from "./windows/RecycleBinWindowContent";
+import { XpAssistantNote } from "./XpAssistantNote";
 
 type XpWindowProps = {
   windowItem: XpOpenWindow;
@@ -75,6 +77,7 @@ export const XpWindow = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const handleClose = () => {
+    void playXpSound("minimize", { overlap: true });
     onClose(windowItem.id);
   };
 
@@ -143,49 +146,62 @@ export const XpWindow = ({
   };
 
   return (
-    <section
-      aria-label={windowItem.title}
-      className="pointer-events-auto absolute flex flex-col overflow-hidden rounded-t-lg border border-[#0a5ec7] bg-[#ece9d8] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+    <div
+      className="pointer-events-auto absolute"
       style={{
         left: windowItem.x,
         top: windowItem.y,
         width: windowItem.width,
-        height: windowItem.height,
         zIndex: windowItem.zIndex,
       }}
       onMouseDown={handleFocus}
     >
-      <header
-        className={`flex select-none items-center justify-between bg-gradient-to-b from-[#3a8fe7] to-[#1c5fb8] px-2 py-1 text-white ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+      <section
+        aria-label={windowItem.title}
+        className="flex flex-col overflow-hidden rounded-t-lg border border-[#0a5ec7] bg-[#ece9d8] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+        style={{
+          width: windowItem.width,
+          height: windowItem.height,
+        }}
       >
-        <div
-          className="flex min-w-0 flex-1 items-center gap-2"
-          onPointerDown={handleTitlePointerDown}
+        <header
+          className={`flex select-none items-center justify-between bg-gradient-to-b from-[#3a8fe7] to-[#1c5fb8] px-2 py-1 text-white ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          <Image
-            src={windowItem.icon}
-            alt=""
-            width={16}
-            height={16}
-            aria-hidden="true"
-          />
-          <span className="truncate text-[12px] font-semibold">
-            {windowItem.title}
-          </span>
+          <div
+            className="flex min-w-0 flex-1 items-center gap-2"
+            onPointerDown={handleTitlePointerDown}
+          >
+            <Image
+              src={windowItem.icon}
+              alt=""
+              width={16}
+              height={16}
+              aria-hidden="true"
+            />
+            <span className="truncate text-[12px] font-semibold">
+              {windowItem.title}
+            </span>
+          </div>
+          <button
+            type="button"
+            aria-label={`Close ${windowItem.title}`}
+            data-xp-no-click-sound
+            onClick={handleClose}
+            onKeyDown={handleCloseKeyDown}
+            className="flex h-5 w-5 shrink-0 cursor-default items-center justify-center rounded-sm border border-[#8f2f2f] bg-gradient-to-b from-[#f4a6a6] to-[#d94b4b] text-[11px] font-bold leading-none text-white"
+          >
+            X
+          </button>
+        </header>
+        <div className="min-h-0 flex-1 border-t border-[#0a5ec7]">
+          {renderWindowContent(
+            windowItem,
+            onOpenAlbumPhoto,
+            onOpenCareerStint,
+          )}
         </div>
-        <button
-          type="button"
-          aria-label={`Close ${windowItem.title}`}
-          onClick={handleClose}
-          onKeyDown={handleCloseKeyDown}
-          className="flex h-5 w-5 shrink-0 cursor-default items-center justify-center rounded-sm border border-[#8f2f2f] bg-gradient-to-b from-[#f4a6a6] to-[#d94b4b] text-[11px] font-bold leading-none text-white"
-        >
-          X
-        </button>
-      </header>
-      <div className="min-h-0 flex-1 border-t border-[#0a5ec7]">
-        {renderWindowContent(windowItem, onOpenAlbumPhoto, onOpenCareerStint)}
-      </div>
-    </section>
+      </section>
+      {windowItem.id === "internet-explorer" ? <XpAssistantNote /> : null}
+    </div>
   );
 };

@@ -19,7 +19,9 @@ export const InternetExplorerWindowContent = () => {
         const data = (await response.json()) as YoutubeResponse;
 
         if (!response.ok || !data.embedUrl) {
-          setErrorMessage(data.error ?? "No live stream is available right now.");
+          setErrorMessage(
+            data.error ?? "No live stream is available right now.",
+          );
           return;
         }
 
@@ -36,16 +38,22 @@ export const InternetExplorerWindowContent = () => {
     <XpWindowChrome
       className="bg-[#ece9d8]"
       showNavBar={false}
-      addressPath="http://jineshb.me/live"
-      bodyClassName="min-h-0 flex-1 bg-black"
+      addressPath="https://www.youtube.com/watch?v=WxfZkMm3wcg"
+      bodyClassName="flex min-h-0 flex-1 items-center justify-center bg-black"
     >
       {embedUrl ? (
-        <iframe
-          title="Live stream"
-          src={embedUrl}
-          className="h-full w-full border-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        />
+        <div className="relative aspect-video max-h-full w-full">
+          <iframe
+            title="Live stream"
+            src={embedUrl}
+            className="pointer-events-none h-full w-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-transparent"
+          />
+        </div>
       ) : (
         <div className="flex h-full items-center justify-center bg-white p-4 text-center text-[12px] text-slate-700">
           {errorMessage ?? "Loading live stream..."}

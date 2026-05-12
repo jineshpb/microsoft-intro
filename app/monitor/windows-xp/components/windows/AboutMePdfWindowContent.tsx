@@ -21,7 +21,7 @@ export const AboutMePdfWindowContent = () => {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <article className="mx-auto max-w-[440px] flow-root bg-[#f4f1e8] px-10 py-14 shadow-[0_2px_10px_rgba(0,0,0,0.28)]">
+        <article className="mx-auto max-w-[490px] flow-root bg-[#f4f1e8] px-10 py-14 shadow-[0_2px_10px_rgba(0,0,0,0.28)]">
           <figure className="float-left m-0 mb-3 mr-4 size-32 [shape-outside:circle(50%)] [shape-margin:0.5rem]">
             <div className="size-full overflow-hidden rounded-full border border-[#8f8578] bg-[#e8e2d6] p-1 shadow-[inset_0_0_0_1px_#fff]">
               <Image
@@ -43,6 +43,9 @@ export const AboutMePdfWindowContent = () => {
             {ABOUT_ME_PDF_INTRO.paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
+          </div>
+          <div className="flex justify-end w-full">
+            <Image src="/sign.png" alt="sign" width={150} height={180} />
           </div>
         </article>
       </div>

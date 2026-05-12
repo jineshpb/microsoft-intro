@@ -1,3 +1,4 @@
+import { XP_WINDOW_DEFINITIONS } from "../content/windows";
 import type { XpOpenWindow, XpWindowId } from "../types";
 
 export const PINNED_TOP_WINDOW_ID: XpWindowId = "aboutme-pdf";
@@ -72,16 +73,19 @@ export const layoutDefaultOpenWindows = (
   }
 
   return windows.map((windowItem) => {
+    const definition = XP_WINDOW_DEFINITIONS[windowItem.id];
     const layoutPosition = layoutPositions.get(windowItem.id);
 
-    if (layoutPosition) {
-      return {
+    return clampWindowToBounds(
+      {
         ...windowItem,
-        ...layoutPosition,
-      };
-    }
-
-    return clampWindowToBounds(windowItem, bounds);
+        width: definition.width,
+        height: definition.height,
+        x: layoutPosition?.x ?? windowItem.x,
+        y: layoutPosition?.y ?? windowItem.y,
+      },
+      bounds,
+    );
   });
 };
 

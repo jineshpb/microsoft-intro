@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useXpWindows } from "../hooks/useXpWindows";
+import { playXpSound, playXpClickSound, unlockXpAudio } from "../utils/xpAudio";
 import type { XpWindowId } from "../types";
 import { XpDesktopIcons } from "./XpDesktopIcons";
 import { XpTaskbar } from "./XpTaskbar";
@@ -67,8 +68,25 @@ export const WindowsXpDesktop = () => {
     });
   };
 
+  const handleRootPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    unlockXpAudio();
+    void playXpSound("startup", { once: true });
+
+    if (
+      event.target instanceof Element &&
+      event.target.closest("[data-xp-no-click-sound]")
+    ) {
+      return;
+    }
+
+    playXpClickSound();
+  };
+
   return (
-    <div className="relative flex h-dvh w-full flex-col overflow-hidden font-[Tahoma,Arial,sans-serif]">
+    <div
+      className="relative flex h-dvh w-full flex-col overflow-hidden font-[Tahoma,Arial,sans-serif]"
+      onPointerDown={handleRootPointerDown}
+    >
       <div
         ref={desktopRef}
         className="relative min-h-0 flex-1 bg-cover bg-center bg-no-repeat"

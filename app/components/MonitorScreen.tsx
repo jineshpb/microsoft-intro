@@ -68,6 +68,7 @@ export default function MonitorScreen() {
         zIndexRange={[1, 10]}
       >
         <YouTubeStream
+          isInteractive={isMonitorInteractive}
           className="h-full w-full"
           style={{
             borderRadius: "20px",

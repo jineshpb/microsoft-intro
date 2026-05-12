@@ -1,5 +1,9 @@
 import type { XpWindowDefinition, XpWindowId } from "../types";
 
+const IE_STREAM_VIDEO_WIDTH = 320;
+const IE_STREAM_VIDEO_HEIGHT = Math.round((IE_STREAM_VIDEO_WIDTH * 9) / 16);
+const IE_STREAM_WINDOW_CHROME_HEIGHT = 104;
+
 export const DESKTOP_ICON_WINDOW_MAP: Record<string, XpWindowId | undefined> = {
   "About me": "about-me",
   "aboutme-pdf": "aboutme-pdf",
@@ -37,9 +41,9 @@ export const XP_WINDOW_DEFINITIONS: Record<XpWindowId, XpWindowDefinition> = {
     id: "aboutme-pdf",
     title: "aboutme.pdf - Adobe Reader",
     icon: "/xp-icons/My Documents.png",
-    width: 440,
+    width: 490,
     height: 400,
-    x: 48,
+    x: 100,
     y: 48,
   },
   album: {
@@ -82,8 +86,8 @@ export const XP_WINDOW_DEFINITIONS: Record<XpWindowId, XpWindowDefinition> = {
     id: "internet-explorer",
     title: "Internet Explorer",
     icon: "/xp-icons/Internet Explorer 6.png",
-    width: 480,
-    height: 250,
+    width: IE_STREAM_VIDEO_WIDTH,
+    height: IE_STREAM_VIDEO_HEIGHT + IE_STREAM_WINDOW_CHROME_HEIGHT,
     x: 528,
     y: 16,
   },
@@ -107,7 +111,4 @@ export const XP_WINDOW_DEFINITIONS: Record<XpWindowId, XpWindowDefinition> = {
   },
 };
 
-export const DEFAULT_OPEN_WINDOWS: XpWindowId[] = [
-  "aboutme-pdf",
-  "internet-explorer",
-];
+export const DEFAULT_OPEN_WINDOWS: XpWindowId[] = ["aboutme-pdf"];

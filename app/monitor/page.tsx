@@ -1,5 +1,5 @@
-import { WindowsXpDesktop } from "./windows-xp/components/WindowsXpDesktop";
+import { XpSession } from "./windows-xp/components/XpSession";
 
 export default function MonitorPage() {
-  return <WindowsXpDesktop />;
+  return <XpSession />;
 }

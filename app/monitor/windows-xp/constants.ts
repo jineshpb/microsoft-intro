@@ -35,13 +35,6 @@ export const XP_DESKTOP_ICONS = [
     row: 1,
   },
   {
-    id: "my-documents",
-    label: "My Documents",
-    icon: "/xp-icons/Folder Closed.png",
-    column: 1,
-    row: 2,
-  },
-  {
     id: "internet-explorer",
     label: "Internet Explorer",
     icon: "/xp-icons/Internet Explorer 6.png",
@@ -68,13 +61,6 @@ export const XP_DESKTOP_ICONS = [
     icon: "/xp-icons/pdf.png",
     column: 2,
     row: 5,
-  },
-  {
-    id: "Recent posts",
-    label: "Recent posts",
-    icon: "/xp-icons/Notepad.png",
-    column: 1,
-    row: 6,
   },
   {
     id: "Images",

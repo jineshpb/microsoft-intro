@@ -142,9 +142,9 @@ export const XpExplorerNavBar = ({
 
 export const XpExplorerAddressBar = ({ path }: XpExplorerAddressBarProps) => {
   return (
-    <div className="flex items-center gap-2 border-b border-[#aca899] bg-[#ece9d8] px-2 py-1 text-[11px] text-slate-800">
+    <div className="flex items-center gap-2 border-b border-[#aca899] bg-[#ece9d8] px-2 py-1 text-[11px] text-slate-800 ">
       <span>Address</span>
-      <div className="min-w-0 flex-1 rounded-sm border border-[#7f9db9] bg-white px-2 py-0.5">
+      <div className="min-w-0 flex-1 truncate rounded-sm border border-[#7f9db9] bg-white px-2 py-0.5">
         {path}
       </div>
     </div>
