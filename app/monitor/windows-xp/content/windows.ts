@@ -6,11 +6,19 @@ export const DESKTOP_ICON_WINDOW_MAP: Record<string, XpWindowId | undefined> = {
   Career: "career",
   Images: "album",
   "internet-explorer": "internet-explorer",
+  minesweeper: "minesweeper",
+  "recycle-bin": "recycle-bin",
+};
+
+export const DESKTOP_ICON_LINK_MAP: Record<string, string> = {
+  portfolio: "https://jineshb.me",
+  linkedin: "https://www.linkedin.com/in/jineshpb/",
 };
 
 export const START_MENU_WINDOW_MAP: Record<string, XpWindowId | undefined> = {
   "Internet Explorer": "internet-explorer",
   Notepad: "about-me",
+  Minesweeper: "minesweeper",
   "My Pictures": "album",
   "My Computer": "career",
 };
@@ -29,10 +37,10 @@ export const XP_WINDOW_DEFINITIONS: Record<XpWindowId, XpWindowDefinition> = {
     id: "aboutme-pdf",
     title: "aboutme.pdf - Adobe Reader",
     icon: "/xp-icons/My Documents.png",
-    width: 520,
-    height: 560,
-    x: 64,
-    y: 32,
+    width: 440,
+    height: 400,
+    x: 48,
+    y: 48,
   },
   album: {
     id: "album",
@@ -74,11 +82,32 @@ export const XP_WINDOW_DEFINITIONS: Record<XpWindowId, XpWindowDefinition> = {
     id: "internet-explorer",
     title: "Internet Explorer",
     icon: "/xp-icons/Internet Explorer 6.png",
-    width: 640,
+    width: 480,
+    height: 250,
+    x: 528,
+    y: 16,
+  },
+  minesweeper: {
+    id: "minesweeper",
+    title: "Minesweeper",
+    icon: "/xp-icons/Minesweeper.png",
+    width: 240,
+    height: 382,
+    x: 220,
+    y: 72,
+  },
+  "recycle-bin": {
+    id: "recycle-bin",
+    title: "Recycle Bin",
+    icon: "/xp-icons/Recycle-Bin.png",
+    width: 520,
     height: 420,
-    x: 180,
-    y: 28,
+    x: 88,
+    y: 64,
   },
 };
 
-export const DEFAULT_OPEN_WINDOWS: XpWindowId[] = ["internet-explorer"];
+export const DEFAULT_OPEN_WINDOWS: XpWindowId[] = [
+  "aboutme-pdf",
+  "internet-explorer",
+];

@@ -8,7 +8,9 @@ export type XpWindowId =
   | "album-viewer"
   | "career"
   | "career-stint"
-  | "internet-explorer";
+  | "internet-explorer"
+  | "minesweeper"
+  | "recycle-bin";
 
 export type XpWindowDefinition = {
   id: XpWindowId;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { XP_DESKTOP_GRID, XP_DESKTOP_ICONS } from "../constants";
-import { DESKTOP_ICON_WINDOW_MAP } from "../content/windows";
+import { DESKTOP_ICON_LINK_MAP, DESKTOP_ICON_WINDOW_MAP } from "../content/windows";
 import type { XpWindowId } from "../types";
 
 type XpDesktopIconsProps = {
@@ -11,6 +11,13 @@ type XpDesktopIconsProps = {
 
 export const XpDesktopIcons = ({ onOpenWindow }: XpDesktopIconsProps) => {
   const handleIconDoubleClick = (iconId: string) => {
+    const link = DESKTOP_ICON_LINK_MAP[iconId];
+
+    if (link) {
+      window.open(link, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     const windowId = DESKTOP_ICON_WINDOW_MAP[iconId];
 
     if (!windowId) {
@@ -39,25 +46,32 @@ export const XpDesktopIcons = ({ onOpenWindow }: XpDesktopIconsProps) => {
         gridTemplateRows: `repeat(${XP_DESKTOP_GRID.rows}, minmax(0, 1fr))`,
       }}
     >
-      {XP_DESKTOP_ICONS.map((icon) => (
-        <button
-          key={icon.id}
-          type="button"
-          aria-label={`Open ${icon.label}`}
-          onDoubleClick={() => handleIconDoubleClick(icon.id)}
-          onKeyDown={(event) => handleIconKeyDown(event, icon.id)}
-          className="flex flex-col items-center justify-start gap-1 border-0 bg-transparent p-0 text-center"
-          style={{
-            gridColumn: icon.column,
-            gridRow: icon.row,
-          }}
-        >
-          <Image src={icon.icon} alt="" width={40} height={40} aria-hidden="true" />
-          <span className="max-w-[88px] text-[11px] leading-tight text-white [text-shadow:1px_1px_1px_rgba(0,0,0,0.9)]">
-            {icon.label}
-          </span>
-        </button>
-      ))}
+      {XP_DESKTOP_ICONS.map((icon) => {
+        const link = DESKTOP_ICON_LINK_MAP[icon.id];
+        const ariaLabel = link
+          ? `Open ${icon.label} in browser`
+          : `Open ${icon.label}`;
+
+        return (
+          <button
+            key={icon.id}
+            type="button"
+            aria-label={ariaLabel}
+            onDoubleClick={() => handleIconDoubleClick(icon.id)}
+            onKeyDown={(event) => handleIconKeyDown(event, icon.id)}
+            className="flex flex-col items-center justify-start gap-1 border-0 bg-transparent p-0 text-center"
+            style={{
+              gridColumn: icon.column,
+              gridRow: icon.row,
+            }}
+          >
+            <Image src={icon.icon} alt="" width={40} height={40} aria-hidden="true" />
+            <span className="max-w-[88px] text-[11px] leading-tight text-white [text-shadow:1px_1px_1px_rgba(0,0,0,0.9)]">
+              {icon.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 };

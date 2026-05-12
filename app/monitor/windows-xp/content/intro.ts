@@ -1,11 +1,7 @@
 export const ABOUT_ME_PDF_INTRO = {
-  name: "Jinesh Bhaskaran",
-  subtitle: "Product designer · Bangalore",
-  headline:
-    "I design enterprise products where operations, data, and real-world workflows have to work together.",
+  headline: "Hi, my name is Jinesh,",
   paragraphs: [
-    "I have spent most of my career in large B2B systems, from supply chain to IoT and monitoring in refrigeration and HVAC. I like the messy middle where product, engineering, and field teams meet.",
-    "These days I am focused on shipping useful tools, mentoring designers, and building small experiments like this room scene when I am away from the day job.",
+    "I’m joining as a Senior Designer on the Calendar team.Before Microsoft, I spent a looong 7 years at Walmart, where I learned everything retail and supply chain. \n\n I come from an industrial design background, with a foundation in computer science engineering. Personally, I’m a new father to a three-month-old baby boy. I enjoy home improvement, tinkering, and trying my hand at new things. And I live in nostalgia. Have a look around — I hope you enjoy the “About Me” experience.",
   ],
   highlights: [
     "Enterprise product design",

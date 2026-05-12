@@ -7,8 +7,8 @@ export const DEFAULT_ROOM_CAMERA: CameraPose = {
 };
 
 export const MONITOR_FOCUS_CAMERA: CameraPose = {
-  position: [2.3, 4.0, 2.3],
-  target: [-0.7, 3.8, -1.3],
+  position: [2.2, 4.0, 1.7],
+  target: [-0.7, 3.88, -1.3],
   fov: 20,
 };
 

@@ -49,6 +49,13 @@ export const XP_DESKTOP_ICONS = [
     row: 3,
   },
   {
+    id: "minesweeper",
+    label: "Minesweeper",
+    icon: "/xp-icons/Minesweeper.png",
+    column: 6,
+    row: 5,
+  },
+  {
     id: "About me",
     label: "Jinesh.txt",
     icon: "/xp-icons/TXT.png",
@@ -76,6 +83,20 @@ export const XP_DESKTOP_ICONS = [
     column: 1,
     row: 7,
   },
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    icon: "/xp-icons/URL.png",
+    column: 4,
+    row: 6,
+  },
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    icon: "/xp-icons/URL.png",
+    column: 5,
+    row: 6,
+  },
 ] as const;
 
 export const XP_START_MENU_LEFT = [
@@ -98,6 +119,10 @@ export const XP_START_MENU_LEFT = [
   {
     label: "Notepad",
     icon: "/xp-icons/Notepad.png",
+  },
+  {
+    label: "Minesweeper",
+    icon: "/xp-icons/Minesweeper.png",
   },
   {
     label: "Tour Windows XP",

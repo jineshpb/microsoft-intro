@@ -11,7 +11,9 @@ import { AlbumExplorerWindowContent } from "./windows/AlbumExplorerWindowContent
 import { AlbumPictureViewerWindowContent } from "./windows/AlbumPictureViewerWindowContent";
 import { CareerStintWindowContent } from "./windows/CareerStintWindowContent";
 import { InternetExplorerWindowContent } from "./windows/InternetExplorerWindowContent";
+import { MinesweeperWindowContent } from "./windows/MinesweeperWindowContent";
 import { MyComputerWindowContent } from "./windows/MyComputerWindowContent";
+import { RecycleBinWindowContent } from "./windows/RecycleBinWindowContent";
 
 type XpWindowProps = {
   windowItem: XpOpenWindow;
@@ -49,6 +51,14 @@ const renderWindowContent = (
 
   if (windowItem.id === "career-stint") {
     return <CareerStintWindowContent stint={windowItem.careerStint} />;
+  }
+
+  if (windowItem.id === "minesweeper") {
+    return <MinesweeperWindowContent />;
+  }
+
+  if (windowItem.id === "recycle-bin") {
+    return <RecycleBinWindowContent />;
   }
 
   return <InternetExplorerWindowContent />;

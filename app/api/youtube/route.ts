@@ -4,7 +4,7 @@ export async function GET() {
   try {
     // Get current stream key from update-stream endpoint
     const res = await fetch(
-      `${process.env.VERCEL_URL || "http://localhost:3001"}/api/update-stream`,
+      `${process.env.VERCEL_URL || "http://localhost:3000"}/api/update-stream`,
     );
     const data = await res.json();
 

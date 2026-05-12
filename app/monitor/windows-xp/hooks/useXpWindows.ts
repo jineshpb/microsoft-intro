@@ -6,6 +6,12 @@ import {
   XP_WINDOW_DEFINITIONS,
 } from "../content/windows";
 import type { OpenXpWindowOptions, XpOpenWindow, XpWindowId } from "../types";
+import {
+  clampWindowToBounds,
+  ensurePinnedTopWindow,
+  layoutDefaultOpenWindows,
+  PINNED_TOP_WINDOW_ID,
+} from "../utils/windowLayout";
 
 const createOpenWindow = (
   id: XpWindowId,
@@ -19,32 +25,56 @@ const createOpenWindow = (
   careerStint: options?.careerStint,
 });
 
+const getInitialZIndex = (id: XpWindowId, index: number) => {
+  if (id === PINNED_TOP_WINDOW_ID) {
+    return DEFAULT_OPEN_WINDOWS.length + 1;
+  }
+
+  return index + 1;
+};
+
 export const useXpWindows = () => {
   const [openWindows, setOpenWindows] = useState<XpOpenWindow[]>(() =>
-    DEFAULT_OPEN_WINDOWS.map((id, index) => createOpenWindow(id, index + 1)),
+    DEFAULT_OPEN_WINDOWS.map((id, index) =>
+      createOpenWindow(id, getInitialZIndex(id, index)),
+    ),
   );
-  const [, setTopZIndex] = useState(DEFAULT_OPEN_WINDOWS.length + 1);
+  const [, setTopZIndex] = useState(DEFAULT_OPEN_WINDOWS.length + 2);
 
-  const focusWindow = useCallback((id: XpWindowId) => {
-    setTopZIndex((currentZIndex) => {
-      const nextZIndex = currentZIndex + 1;
+  const updateOpenWindows = useCallback(
+    (updater: (currentWindows: XpOpenWindow[]) => XpOpenWindow[]) => {
       setOpenWindows((currentWindows) =>
-        currentWindows.map((windowItem) =>
-          windowItem.id === id
-            ? { ...windowItem, zIndex: nextZIndex }
-            : windowItem,
-        ),
+        ensurePinnedTopWindow(updater(currentWindows)),
       );
-      return nextZIndex;
-    });
-  }, []);
+    },
+    [],
+  );
+
+  const focusWindow = useCallback(
+    (id: XpWindowId) => {
+      setTopZIndex((currentZIndex) => {
+        const nextZIndex = currentZIndex + 1;
+
+        updateOpenWindows((currentWindows) =>
+          currentWindows.map((windowItem) =>
+            windowItem.id === id
+              ? { ...windowItem, zIndex: nextZIndex }
+              : windowItem,
+          ),
+        );
+
+        return nextZIndex + 1;
+      });
+    },
+    [updateOpenWindows],
+  );
 
   const openWindow = useCallback(
     (id: XpWindowId, options?: OpenXpWindowOptions) => {
       setTopZIndex((currentZIndex) => {
         const nextZIndex = currentZIndex + 1;
 
-        setOpenWindows((currentWindows) => {
+        updateOpenWindows((currentWindows) => {
           const existingWindow = currentWindows.find(
             (windowItem) => windowItem.id === id,
           );
@@ -97,10 +127,10 @@ export const useXpWindows = () => {
           ];
         });
 
-        return nextZIndex;
+        return nextZIndex + 1;
       });
     },
-    [],
+    [updateOpenWindows],
   );
 
   const closeWindow = useCallback((id: XpWindowId) => {
@@ -109,13 +139,41 @@ export const useXpWindows = () => {
     );
   }, []);
 
-  const moveWindow = useCallback((id: XpWindowId, x: number, y: number) => {
-    setOpenWindows((currentWindows) =>
-      currentWindows.map((windowItem) =>
-        windowItem.id === id ? { ...windowItem, x, y } : windowItem,
-      ),
-    );
-  }, []);
+  const moveWindow = useCallback(
+    (id: XpWindowId, x: number, y: number, bounds?: { width: number; height: number }) => {
+      updateOpenWindows((currentWindows) =>
+        currentWindows.map((windowItem) => {
+          if (windowItem.id !== id) {
+            return windowItem;
+          }
+
+          const nextWindow = { ...windowItem, x, y };
+
+          if (!bounds) {
+            return nextWindow;
+          }
+
+          return clampWindowToBounds(nextWindow, bounds);
+        }),
+      );
+    },
+    [updateOpenWindows],
+  );
+
+  const relayoutForViewport = useCallback(
+    (width: number, height: number) => {
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+
+      setOpenWindows((currentWindows) =>
+        ensurePinnedTopWindow(
+          layoutDefaultOpenWindows(currentWindows, { width, height }),
+        ),
+      );
+    },
+    [],
+  );
 
   return {
     openWindows,
@@ -123,5 +181,6 @@ export const useXpWindows = () => {
     closeWindow,
     focusWindow,
     moveWindow,
+    relayoutForViewport,
   };
 };
