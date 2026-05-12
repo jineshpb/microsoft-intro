@@ -1,10 +1,14 @@
 "use client";
-// import { useEffect, useState } from "react";
-// import { CircleSlash, MoveLeft, Radio } from "lucide-react";
+import Image from "next/image";
+import { MONITOR_FOCUS_LOCKED_THRESHOLD } from "./constants/sceneCamera";
 import RoomScene from "./components/RoomScene";
-// import Link from "next/link";
+import { useCameraFocusStore } from "./store/useCameraFocusStore";
+// import { useEffect, useState } from "react";
 
 export default function Home() {
+  const focusProgress = useCameraFocusStore((state) => state.focusProgress);
+  const isMonitorFocused = focusProgress >= MONITOR_FOCUS_LOCKED_THRESHOLD;
+
   // const [isLive, setIsLive] = useState(false);
 
   // useEffect(() => {
@@ -54,7 +58,16 @@ export default function Home() {
             </div>
           )} */}
         </div>
-        <div className="absolute flex items-center h-16 bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full bg-gradient-to-t from-gray-900 to-transparent justify-between" />
+        <div className="absolute flex items-center h-20 bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full bg-gradient-to-t from-gray-900 to-transparent justify-between" />
+        {!isMonitorFocused ? (
+          <Image
+            src="/scroll down (1).gif"
+            className="absolute bottom-0 right-1/2 z-10 translate-x-1/2 opacity-50 filter"
+            alt="Scroll to explore the room"
+            width={70}
+            height={70}
+          />
+        ) : null}
 
         <RoomScene />
       </main>

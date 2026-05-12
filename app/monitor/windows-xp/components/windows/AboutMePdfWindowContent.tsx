@@ -35,13 +35,22 @@ export const AboutMePdfWindowContent = () => {
             </div>
           </figure>
 
-          <p className="font-[Georgia,Times_New_Roman,serif] text-[20px] italic leading-6 text-[#2f2a24]">
+          <p className="font-[Georgia,Times_New_Roman,serif] text-[26px] italic leading-8 text-[#2f2a24]">
             {ABOUT_ME_PDF_INTRO.headline}
           </p>
 
           <div className="space-y-4 pt-2 font-[Georgia,Times_New_Roman,serif] text-[16px] leading-6 text-[#2f2a24]">
-            {ABOUT_ME_PDF_INTRO.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {ABOUT_ME_PDF_INTRO.paragraphs.map((paragraph, paragraphIndex) => (
+              <div key={paragraphIndex} className="space-y-0">
+                {paragraph.split("\n").map((line, lineIndex) => (
+                  <p
+                    key={lineIndex}
+                    className={lineIndex === 0 ? undefined : "indent-4"}
+                  >
+                    {line.trim()}
+                  </p>
+                ))}
+              </div>
             ))}
           </div>
           <div className="flex justify-end w-full">
