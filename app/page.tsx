@@ -58,7 +58,7 @@ export default function Home() {
             </div>
           )} */}
         </div>
-        <div className="absolute flex items-center h-20 bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full bg-gradient-to-t from-gray-900 to-transparent justify-between" />
+        {/* <div className="absolute flex items-center h-4 bottom-0 left-0 z-10 py-2 px-6 font-jetbrains w-full bg-gradient-to-t from-gray-900 to-transparent justify-between" /> */}
         {!isMonitorFocused ? (
           <Image
             src="/scroll down (1).gif"
