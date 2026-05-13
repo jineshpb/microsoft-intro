@@ -13,14 +13,14 @@ const READER_MENU_ITEMS = [
 
 export const AboutMePdfWindowContent = () => {
   return (
-    <div className="flex h-full flex-col bg-[#808080]">
-      <div className="flex items-center gap-3   bg-[#ece9d8] px-2 py-0.5 text-[11px] text-slate-900">
+    <div className="flex min-h-0 flex-1 flex-col bg-[#808080]">
+      <div className="flex shrink-0 items-center gap-3 bg-[#ece9d8] px-2 py-0.5 text-[11px] text-slate-900">
         {READER_MENU_ITEMS.map((item) => (
           <span key={item}>{item}</span>
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 basis-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain p-4 [-webkit-overflow-scrolling:touch]">
         <article className="mx-auto max-w-[490px] flow-root bg-[#f4f1e8] px-10 py-14 shadow-[0_2px_10px_rgba(0,0,0,0.28)]">
           <figure className="float-left m-0 mb-3 mr-4 size-32 [shape-outside:circle(50%)] [shape-margin:0.5rem]">
             <div className="size-full overflow-hidden rounded-full border border-[#8f8578] bg-[#e8e2d6] p-1 shadow-[inset_0_0_0_1px_#fff]">

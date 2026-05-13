@@ -193,7 +193,7 @@ export const XpWindow = ({
             X
           </button>
         </header>
-        <div className="min-h-0 flex-1 border-t border-[#0a5ec7]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-[#0a5ec7]">
           {renderWindowContent(
             windowItem,
             onOpenAlbumPhoto,
